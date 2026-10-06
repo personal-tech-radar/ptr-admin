@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build SSR-Safe Angular"
+  short_description: "Implement hydration-safe Angular behavior"
+  default_prompt: "Use $build-ssr-safe-angular to implement Angular behavior that renders safely on the server and hydrates correctly."

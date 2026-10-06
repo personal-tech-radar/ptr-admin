@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scaffold Angular Feature"
+  short_description: "Build feature-layered Angular slices"
+  default_prompt: "Use $scaffold-angular-feature to add a standalone Angular feature with clear domain, data, and UI boundaries."

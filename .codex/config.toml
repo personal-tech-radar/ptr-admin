@@ -1,0 +1,19 @@
+# Shared conservative defaults for trusted Codex sessions in this repository.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[agents.team-lead]
+description = "Classify Angular admin work and coordinate only the instructions needed for its risk and scope."
+config_file = "team-lead.toml"
+
+[agents.frontend-coder]
+description = "Implement Angular admin frontend work using this repository's architecture and skills."
+config_file = "frontend-coder.toml"
+
+[agents.code-reviewer]
+description = "Review concrete Angular admin diffs for architecture, SSR, accessibility, and verification gaps."
+config_file = "code-reviewer.toml"
+
+[agents.qa-runner]
+description = "Run proportionate Angular SSR and runtime verification for changed admin behavior."
+config_file = "qa-runner.toml"

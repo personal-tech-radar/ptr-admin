@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Frontend Change"
+  short_description: "Review Angular architecture and SSR safety"
+  default_prompt: "Use $review-frontend-change to review an Angular diff for architecture, accessibility, SSR, tests, and scope defects."

@@ -1,0 +1,66 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Operations</p>
+      <h1>Dashboard</h1>
+      <p class="muted">A quick view of the PTR service and operational queues.</p>
+    </div>
+    <span class="live-dot">● Live · 20s</span>
+  </header>
+  @if (error()) {
+    <div class="error-box" role="alert">{{ error() }}</div>
+  }
+  <div class="stat-grid">
+    <article class="stat-card">
+      <span class="eyebrow">Users</span><strong>{{ stats().users || '—' }}</strong
+      ><span class="muted">Registered normal users</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">Sources</span><strong>{{ stats().sources || '—' }}</strong
+      ><span class="muted">Configured sources</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">Articles</span><strong>{{ stats().articles || '—' }}</strong
+      ><span class="muted">In the article pipeline</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">Digests sent</span><strong>{{ stats().digestsSent || '—' }}</strong
+      ><span class="muted">Stored sent digests</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">Failed jobs</span><strong>{{ stats().failedJobs || '—' }}</strong
+      ><span class="muted">Available for safe cancellation</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">Application</span><strong>{{ health()?.appName || 'Loading…' }}</strong
+      ><span class="muted">{{ health()?.environment || 'Checking API' }}</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">API status</span
+      ><strong class="status-good">{{ health() ? 'Healthy' : 'Checking…' }}</strong
+      ><span class="muted">{{
+        lastUpdated() ? 'Updated ' + lastUpdated()!.toLocaleTimeString() : 'Polling health endpoint'
+      }}</span>
+    </article>
+    <article class="stat-card">
+      <span class="eyebrow">Uptime</span><strong>{{ health() ? uptime() : '—' }}</strong
+      ><span class="muted">Since last service start</span>
+    </article>
+  </div>
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Queue visibility</h2>
+        <p class="muted">The current API exposes failed jobs and safe cancellation only.</p>
+      </div>
+      <a class="text-link" routerLink="/jobs">Review failed jobs →</a>
+    </div>
+    <div class="notice">
+      <span class="notice-icon">i</span
+      ><span
+        >Waiting, active, delayed and completed queue counts are not available in the current
+        administrator API.</span
+      >
+    </div>
+  </section>
+</section>

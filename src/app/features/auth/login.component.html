@@ -1,0 +1,30 @@
+<main class="login-page">
+  <section class="login-card">
+    <div class="brand brand-large"><span class="brand-mark">PTR</span><span>Admin</span></div>
+    <h1>Sign in</h1>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label
+        >Email<input
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+          placeholder="admin@example.com"
+      /></label>
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="field-error">Enter a valid email address.</small>
+      }
+      <label
+        >Password<input type="password" formControlName="password" autocomplete="current-password"
+      /></label>
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <small class="field-error">Password is required.</small>
+      }
+      @if (error()) {
+        <div class="error-box" role="alert">{{ error() }}</div>
+      }
+      <button class="btn primary full" type="submit" [disabled]="pending()">
+        {{ pending() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+  </section>
+</main>

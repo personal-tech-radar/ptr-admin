@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Accessible Component"
+  short_description: "Create accessible custom Angular components"
+  default_prompt: "Use $build-accessible-component to create a semantic, accessible custom Angular component without a UI library."

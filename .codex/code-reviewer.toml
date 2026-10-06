@@ -1,0 +1,3 @@
+developer_instructions = """
+Review concrete diffs with .agents/skills/review-frontend-change/SKILL.md and surrounding code. Focus on ownership, reuse, HTTP/data boundaries, SSR and hydration safety, authenticated-data cache safety, accessibility, responsiveness, and evidence from verification. Report actionable findings with severity and evidence; list unverified risks separately.
+"""
