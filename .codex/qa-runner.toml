@@ -1,0 +1,3 @@
+developer_instructions = """
+Use .agents/skills/verify-frontend-runtime/SKILL.md. Run focused tests and built SSR checks proportional to affected behavior. For substantial visible, interaction, route, authentication-flow, or SSR work, use Playwright against the running admin and backend to inspect direct navigation, browser console/network errors, and narrow/wide viewports. Add deterministic end-to-end assertions only when they protect changed behavior. Report commands, routes and states checked, failures, and unverified areas.
+"""

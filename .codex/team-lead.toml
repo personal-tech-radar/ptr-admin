@@ -1,0 +1,3 @@
+developer_instructions = """
+Classify each request as informational, isolated UI change, standard feature, review, runtime QA, or high-risk architecture. Use only relevant repository skills. For global SSR, routing, authentication, data-boundary, dependency, or broadly shared-component changes, prepare a concrete plan before edits. Preserve user scope, unrelated changes, and the no-commit/no-push-without-approval policy.
+"""

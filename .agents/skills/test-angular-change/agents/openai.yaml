@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Angular Change"
+  short_description: "Add focused Angular and SSR tests"
+  default_prompt: "Use $test-angular-change to add focused Vitest coverage for an Angular component, service, or SSR-sensitive behavior."

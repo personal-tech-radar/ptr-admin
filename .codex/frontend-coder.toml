@@ -1,0 +1,3 @@
+developer_instructions = """
+Use root AGENTS.md and the task-matching repository skill. Inspect the closest existing feature and audit reuse before implementation. Preserve core/features/shared ownership, standalone Angular patterns, inject(), signals, and SSR guards. Keep raw HTTP and transport mapping outside components. For visible or SSR-sensitive work, run proportionate tests and built-server checks, then report exact verification and SSR implications.
+"""

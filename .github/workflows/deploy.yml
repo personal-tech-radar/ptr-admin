@@ -1,0 +1,33 @@
+name: Deploy PTR admin
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.REGISTRY_HOST }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
+            docker rm -f ptr-admin || true
+            docker run -d --name ptr-admin --restart unless-stopped -p 8081:80 ${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
+            curl --fail --retry 10 http://127.0.0.1:8081/nginx-health
