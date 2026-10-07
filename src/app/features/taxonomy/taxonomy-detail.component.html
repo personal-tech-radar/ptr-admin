@@ -1,0 +1,140 @@
+<div class="page taxonomy-detail">
+  <a routerLink="/taxonomy">← Taxonomy</a>
+  @if (loading()) {
+    <p class="loading" role="status">Loading topic…</p>
+  }
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (item(); as topic) {
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">{{ topic.kind }}</p>
+        <h1>{{ topic.name }}</h1>
+      </div>
+      <button class="btn outline" type="button" (click)="openDiscoverConfirmation()">
+        Discover sources
+      </button>
+    </header>
+
+    <section class="panel topic-details">
+      <h2>Topic details</h2>
+      <dl>
+        <div>
+          <dt>Updated</dt>
+          <dd>{{ topic.updatedAt | date: 'medium' }}</dd>
+        </div>
+        <div>
+          <dt>Aliases</dt>
+          <dd>
+            @for (alias of topic.aliases; track alias) {
+              <span class="chip">{{ alias }}</span>
+            } @empty {
+              <span class="muted">No aliases</span>
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="panel topic-coverage" aria-labelledby="topic-coverage-heading">
+      <h2 id="topic-coverage-heading">Source coverage</h2>
+      <p class="muted">
+        Counts are distinct sources linked to this {{ topic.kind }}. Overall totals count each
+        source once; a source can appear under more than one stream.
+      </p>
+      <div class="coverage-summary" aria-label="Overall source coverage">
+        <div>
+          <span>Active sources</span><strong>{{ topic.coverage.active }}</strong>
+        </div>
+        <div>
+          <span>Degraded sources</span><strong>{{ topic.coverage.degraded }}</strong>
+        </div>
+        <div>
+          <span>Disabled sources</span><strong>{{ topic.coverage.disabled }}</strong>
+        </div>
+      </div>
+      @if (topic.relatedStreams.length) {
+        <div class="table-wrap stream-coverage">
+          <table>
+            <caption>
+              Source counts for each associated content stream. A source may be counted in multiple
+              streams.
+            </caption>
+            <thead>
+              <tr>
+                <th>Content stream</th>
+                <th>Active sources</th>
+                <th>Degraded sources</th>
+                <th>Disabled sources</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (stream of topic.relatedStreams; track stream.id) {
+                <tr>
+                  <td>
+                    <a
+                      [routerLink]="['/sources']"
+                      [queryParams]="{ technologyInterestId: topic.id, streamId: stream.id }"
+                      >{{ stream.name }}</a
+                    >
+                  </td>
+                  <td>{{ stream.coverage.active }}</td>
+                  <td>{{ stream.coverage.degraded }}</td>
+                  <td>{{ stream.coverage.disabled }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <form class="panel topic-edit" (ngSubmit)="save()">
+      <h2>Edit topic</h2>
+      <label>Name<input name="name" required [(ngModel)]="form.name" /></label
+      ><label>Aliases (comma separated)<input name="aliases" [(ngModel)]="form.aliases" /></label
+      ><button class="btn primary" type="submit" [disabled]="pending()">Save topic</button>
+    </form>
+    <form class="panel merge-form" (ngSubmit)="merge()">
+      <h2>Merge duplicate</h2>
+      <p class="muted">
+        {{ topic.name }} remains the winner. The selected duplicate is merged into it.
+      </p>
+      <label
+        >Duplicate to merge<select name="loserId" [(ngModel)]="loserId" required>
+          <option value="">Select duplicate</option>
+          @for (option of options(); track option.id) {
+            @if (option.id !== topic.id) {
+              <option [value]="option.id">{{ option.name }} ({{ option.kind }})</option>
+            }
+          }
+        </select></label
+      ><button class="btn danger" type="submit" [disabled]="pending() || !loserId">
+        Merge with confirmation
+      </button>
+    </form>
+  }
+  <dialog #discoverDialog class="discover-dialog" aria-labelledby="discover-title">
+    <h2 id="discover-title">Confirm source discovery</h2>
+    @if (item(); as topic) {
+      <p>Queue source discovery for {{ topic.name }}?</p>
+    }
+    @if (discoverError()) {
+      <p class="error-box" role="alert">{{ discoverError() }}</p>
+    }
+    <div class="actions">
+      <button
+        class="btn outline"
+        type="button"
+        [disabled]="pending()"
+        (click)="closeDiscoverConfirmation()"
+      >
+        Cancel
+      </button>
+      <button class="btn primary" type="button" [disabled]="pending()" (click)="discover()">
+        {{ pending() ? 'Queueing…' : 'Confirm and discover' }}
+      </button>
+    </div>
+  </dialog>
+</div>

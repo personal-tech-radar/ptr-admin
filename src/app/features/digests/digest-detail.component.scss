@@ -1,0 +1,120 @@
+.digest-detail {
+  display: grid;
+  gap: 18px;
+}
+.digest-detail > a,
+.digest-detail a:not(.btn) {
+  color: var(--orange);
+  overflow-wrap: anywhere;
+}
+.digest-detail .page-header {
+  margin: 0;
+  align-items: flex-start;
+}
+.digest-sections {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+.digest-sections > .panel {
+  min-width: 0;
+  padding: 20px;
+}
+.digest-sections dl {
+  display: grid;
+  gap: 12px;
+}
+.digest-sections dl:not(.score-breakdown) > div {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 2fr;
+  gap: 10px;
+}
+.digest-sections dt {
+  color: var(--muted);
+}
+.digest-sections dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.digest-intro dd,
+.article-summary {
+  white-space: pre-line;
+  line-height: 1.7;
+}
+.stream-pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stream-pages li {
+  margin: 0;
+}
+.digest-articles {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.digest-article {
+  min-width: 0;
+  padding: 18px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.article-position {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.digest-article h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.4;
+}
+.article-summary {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.score-breakdown {
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 10px 16px;
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.score-breakdown > div {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.score-breakdown dt,
+.score-breakdown dd {
+  font-size: 12px;
+}
+.preview-label {
+  color: var(--orange);
+  background: var(--orange-soft);
+  border-radius: 6px;
+  padding: 8px 12px;
+  display: inline-block;
+}
+@media (max-width: 700px) {
+  .digest-detail .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .digest-sections dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+  .score-breakdown > div {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+}

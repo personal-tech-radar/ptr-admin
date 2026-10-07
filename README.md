@@ -18,7 +18,10 @@ npm run lint
 npm test
 npm run format:check
 npm run build
+npm run test:e2e
 ```
+
+The Playwright suite uses the running backend and requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the process environment. For the local PTR backend, run `node --env-file=../ptr-backend/.env node_modules/playwright/cli.js test`. Install its Chromium browser with `npx playwright install chromium` if needed. Browser tests cover desktop and mobile Chromium; they do not create or delete production records.
 
 ## Configuration
 
@@ -28,37 +31,41 @@ Administrator access is separate from normal-user authentication. The SPA keeps 
 
 ## Routes
 
-`/login`, `/dashboard`, `/articles`, `/sources` (including Candidates), `/taxonomy`, `/coverage`, `/users`, `/digests`, `/jobs`, and `/admins` are direct Angular routes. Protected routes use the administrator auth guard.
+`/login`, `/dashboard`, `/articles` and `/articles/:id`, `/sources` and `/sources/:id` (plus `/sources/candidates/:id`), `/taxonomy` and `/taxonomy/:id` (including the Content streams tab), `/jobs` and `/jobs/:queue/:id`, `/digests` and `/digests/:id`, `/users`, `/users/:id`, and `/admins` are direct Angular routes. The former `/coverage` URL redirects to the Taxonomy list. Protected routes use the administrator auth guard, and their filters live in query parameters. The Dashboard refreshes every 10 seconds and supports manual refresh.
+
+The Users page shows the filtered user list and user details. The separate Users Analytics view and its activity-events route are no longer part of the admin UI.
+
+Article details are arranged as full-width sections. Extracted content opens in a modal as plain text, and structured extraction, release, and security data is shown as labeled fields rather than JSON. Tags, scores, material/complexity, and digest flags are grouped under Analysis attributes.
+
+The Dashboard separates account totals from DAU/WAU/MAU, then shows sources, source candidates, source types (Web, Feeds, GitHub Releases), and articles received in the selected period. Metric cards link to filtered lists and provide short hover descriptions. Digest delivery and backend application status follow the content overview.
+
+The sidebar order is Dashboard, Users, Taxonomy, Sources, Articles, Digests, Jobs, Administrators. Source-type metrics use compact, three-column label-and-count cards.
+
+Successful administrative actions appear as dismissible, auto-expiring toasts. Rows in record lists navigate to their detail views by pointer or keyboard; embedded links and controls retain their own actions. Sources combine type and Web extraction method in one column, keep the Added and Last successful fetch dates adjacent, and expose status actions in the detail header.
+
+The current Angular build is client-rendered because administrator authentication is browser-local. The unused SSR route configuration also selects client rendering, so authenticated data is not transferred through a shared server-render cache if a server build is enabled later. The production Docker image serves the CSR bundle through Nginx.
 
 ## Deployment
 
-The workflow in `.github/workflows/deploy.yml` builds and pushes the Docker image, deploys it over SSH, and checks `/nginx-health`. The image serves the CSR Angular bundle with Nginx; `/` falls back to `index.html`, so direct navigation/bookmarks such as `/articles` work correctly. Runtime API configuration can be supplied by replacing `runtime-config.js` in the served public directory during deployment.
+Pull requests run unit tests, ESLint, Prettier, the Playwright TypeScript check, and a production build. Start the production workflow in `.github/workflows/deploy-prod.yml` manually from GitHub Actions. It repeats those checks, publishes `prod` and commit-SHA Docker image tags to Docker Hub, then invokes the Dokploy deployment webhook.
 
 Required GitHub repository secrets:
 
-| Secret              | Purpose                                                         |
-| ------------------- | --------------------------------------------------------------- |
-| `REGISTRY_HOST`     | Container registry hostname for `docker login`.                 |
-| `REGISTRY_USERNAME` | Registry login username.                                        |
-| `REGISTRY_PASSWORD` | Registry password or token.                                     |
-| `REGISTRY_IMAGE`    | Full image name, including registry/namespace, without the tag. |
-| `DEPLOY_HOST`       | SSH hostname or IP of the deployment host.                      |
-| `DEPLOY_USER`       | SSH user allowed to run Docker.                                 |
-| `DEPLOY_SSH_KEY`    | Private SSH key used by the deployment action.                  |
+| Secret                | Purpose                                                                  |
+| --------------------- | ------------------------------------------------------------------------ |
+| `DOCKERHUB_USERNAME`  | Docker Hub account used to publish the image.                            |
+| `DOCKERHUB_TOKEN`     | Docker Hub access token with permission to push the image.               |
+| `DOCKERHUB_IMAGE`     | Full Docker Hub image name, for example `personaltechradar/ptr-admin`.   |
+| `DOKPLOY_WEBHOOK_URL` | Private Dokploy deployment webhook invoked after the image is published. |
 
-The current workflow does not require an API secret: the admin API URL is public browser configuration, while administrator credentials are entered at runtime. Update `runtime-config.js` on the deployment host/image for a non-local backend URL.
+Set `PTR_ADMIN_API_BASE_URL` in the Dokploy application environment to the browser-reachable administrator API origin (for example, `https://api.example.com`, without credentials or a trailing slash). The container writes this public value to `runtime-config.js` at startup; the file is served with `Cache-Control: no-store` so a redeployed API origin is not held in browser cache. The value is configuration, not a secret. Administrator credentials are entered at runtime.
 
 ## Infrastructure
 
-`Dockerfile` builds the Angular bundle in Node 22 and serves it from Nginx. `deploy/nginx` provides security headers, immutable asset caching, compression, health checking, and SPA fallback. `deploy/logrotate` rotates Nginx logs. `deploy/fail2ban` contains the equivalent PTR Docker action and an Nginx abuse jail; enable it on the host with the host's Fail2ban service and log mount.
+`Dockerfile` builds the Angular bundle in Node 22 and serves it from the official Nginx stable Alpine image. `.dockerignore` keeps source-control metadata, local dependencies, reports, and backend reference files out of the build context. `deploy/nginx` provides security headers, immutable asset caching, runtime-config cache protection, compression, health checking, and SPA fallback. `deploy/logrotate` and `deploy/fail2ban` contain host-side examples; they are not daemons installed in the static web container.
 
-## Verified backend gaps
+## API behavior and limitations
 
-The live `http://localhost:3300/docs-json` contract was inspected programmatically. The following are not fabricated in the UI:
+The implementation was checked against the running `http://localhost:3300/docs-json` contract and the local `admin-api.md` notes. Queues expose live state snapshots; pending cancellation is limited to waiting, delayed, paused, and prioritized jobs. Taxonomy creation uses the backend’s discovery flow; stream keys remain immutable. Source Web processing recipes are read-only. Administrator previews use a selected user’s profile but are delivered to the authenticated administrator, never to the selected user.
 
-- Jobs currently expose `GET /admin/jobs/failed` and `DELETE /admin/jobs/{queue}/{jobId}` only. Current waiting/active/delayed/paused/completed queue listing and counts are unavailable, so Dashboard and Jobs describe/show failed-job capability only.
-- Technology/Interest supports list, patch, merge, and source discovery, but no administrator create endpoint exists. There is no fake Add taxonomy mutation.
-- Administrators support list and create only. No edit, disable, delete, or reset-password-for-another-admin endpoints are exposed.
-- The admin source contract supports direct `POST /admin/sources`; no separate administrator source-candidate submission endpoint was present. Candidate list/detail/retry are implemented from their dedicated admin endpoints.
-
-The API also exposes additional read-only audit resources (`article-feedback`, saved articles, opens, user taxonomy/streams, source preferences) that are typed in the API layer for follow-up detail tabs; the first pass keeps the main operational tables intentionally compact.
+The backend has no administrator `GET /technology-interests/:id`, so a taxonomy deep link searches the paginated list until it finds the requested ID. Source validation has no independent historical attempt table, so the detail shows its latest validation and retained ingestion attempts. Older stored digest templates may lack extractable article short descriptions; those are labeled unavailable. Administrators support list and create, but not deletion, roles, reset-password-for-others, or audit logs. The local `admin-api.md` is backend-provided reference material and is intentionally untracked.

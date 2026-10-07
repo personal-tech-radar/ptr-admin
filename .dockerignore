@@ -1,0 +1,15 @@
+.git
+.github
+.angular
+.idea
+node_modules
+out-tsc
+coverage
+playwright-report
+reports
+test-results
+.env
+.env.*
+admin-api.md
+*.log
+.DS_Store

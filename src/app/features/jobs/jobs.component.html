@@ -1,0 +1,117 @@
+<div class="page jobs-page">
+  <header class="page-header">
+    <div>
+      <h1>Queues</h1>
+    </div>
+  </header>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (summaryError()) {
+    <p class="error-box" role="alert">{{ summaryError() }}</p>
+  }
+  <section class="queue-grid" aria-label="Queue state counts">
+    @for (queue of summary(); track queue.queue) {
+      <article class="stat-card">
+        <h2>{{ queue.queue }}</h2>
+        <p>Waiting {{ queue.waiting }} · Active {{ queue.active }} · Delayed {{ queue.delayed }}</p>
+        <p>
+          Paused {{ queue.paused }} · Prioritized {{ queue.prioritized }} · Failed
+          {{ queue.failed }}
+        </p>
+      </article>
+    }
+  </section>
+  <form class="job-filters panel" (ngSubmit)="applyFilters()">
+    <label
+      >Queue<select name="queue" [(ngModel)]="filters['queue']">
+        <option value="">All queues</option>
+        @for (item of summary(); track item.queue) {
+          <option [value]="item.queue">{{ item.queue }}</option>
+        }
+      </select></label
+    ><label
+      >State<select name="state" [(ngModel)]="filters['state']">
+        <option value="">All states</option>
+        <option value="waiting">Waiting</option>
+        <option value="active">Active</option>
+        <option value="delayed">Delayed</option>
+        <option value="paused">Paused</option>
+        <option value="prioritized">Prioritized</option>
+        <option value="failed">Failed</option>
+        <option value="completed">Completed</option>
+      </select></label
+    ><button class="btn primary" type="submit">Apply filters</button>
+  </form>
+  <section class="panel" aria-label="Jobs">
+    @if (loading()) {
+      <p class="loading" role="status">Loading jobs…</p>
+    } @else if (!jobs().length) {
+      <p class="empty">No jobs found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Queue</th>
+              <th>Job type</th>
+              <th>Related entity</th>
+              <th>Attempts</th>
+              <th>Created</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (job of jobs(); track job.queue + ':' + job.id) {
+              <tr
+                [appTableRowLink]="['/jobs', job.queue, job.id]"
+                [appTableRowLabel]="'Open job ' + job.id"
+              >
+                <td>{{ job.state }}</td>
+                <td>
+                  <a [routerLink]="['/jobs', job.queue, job.id]">{{ job.queue }}</a>
+                </td>
+                <td>{{ job.type }}</td>
+                <td>
+                  @if (job.reference; as reference) {
+                    <a [attr.href]="referencePath(reference)"
+                      >{{ reference.type }} {{ reference.id }}</a
+                    >
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>{{ job.attemptsMade }} / {{ job.attempts }}</td>
+                <td>{{ job.timestamp | date: 'medium' }}</td>
+                <td>{{ job.failedReason ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @if (!loading() && jobs().length) {
+      <div class="pagination">
+        <span>{{ total() }} jobs · Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous</button
+          ><button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</div>

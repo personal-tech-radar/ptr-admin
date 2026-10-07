@@ -1,0 +1,10 @@
+<div class="toast-container" aria-label="Notifications">
+  @for (message of toasts.messages(); track message.id) {
+    <div class="toast" role="status">
+      <span>{{ message.text }}</span>
+      <button type="button" aria-label="Dismiss notification" (click)="toasts.dismiss(message.id)">
+        ×
+      </button>
+    </div>
+  }
+</div>

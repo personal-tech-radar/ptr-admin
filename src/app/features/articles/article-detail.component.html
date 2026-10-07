@@ -1,0 +1,258 @@
+<div class="page article-detail">
+  <a routerLink="/articles">← Articles</a>
+  @if (loading()) {
+    <p class="loading" role="status">Loading article…</p>
+  }
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (article(); as item) {
+    <header class="page-header">
+      <div>
+        <h1>{{ item.title }}</h1>
+        <p class="muted">{{ item.status }} · Received {{ item.createdAt | date: 'medium' }}</p>
+      </div>
+      <div class="detail-actions">
+        @if (item.status === 'failed') {
+          <button class="btn outline" type="button" [disabled]="actionPending()" (click)="retry()">
+            Retry failed analysis
+          </button>
+        }
+        <button class="btn danger" type="button" [disabled]="actionPending()" (click)="delete()">
+          Soft-delete article
+        </button>
+      </div>
+    </header>
+    <div class="article-sections">
+      <section class="panel">
+        <h2>Source data and processing</h2>
+        <dl>
+          <div>
+            <dt>Source</dt>
+            <dd>
+              <a [routerLink]="['/sources', item.sourceId]">{{
+                item.source?.name ?? item.sourceId
+              }}</a>
+            </dd>
+          </div>
+          <div>
+            <dt>Original URL</dt>
+            <dd>
+              <a [href]="item.url" target="_blank" rel="noopener noreferrer">{{ item.url }}</a>
+            </dd>
+          </div>
+          <div>
+            <dt>Author</dt>
+            <dd>{{ item.author ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Published</dt>
+            <dd>{{ item.publishedAt ? (item.publishedAt | date: 'medium') : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{{ item.status }}</dd>
+          </div>
+          <div>
+            <dt>Extraction method</dt>
+            <dd>{{ item.contentExtractionMethod ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Content fetched</dt>
+            <dd>{{ item.contentFetchedAt ? (item.contentFetchedAt | date: 'medium') : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Received</dt>
+            <dd>{{ item.createdAt | date: 'medium' }}</dd>
+          </div>
+        </dl>
+        @if (extractionConfiguration().length) {
+          <h3>Extraction configuration</h3>
+          <dl class="structured-data">
+            @for (entry of extractionConfiguration(); track entry.label) {
+              <div>
+                <dt>{{ entry.label }}</dt>
+                <dd>{{ entry.value }}</dd>
+              </div>
+            }
+          </dl>
+        }
+        <div class="extracted-content-control">
+          <button class="btn outline" type="button" (click)="openExtractedContent()">
+            View extracted content
+          </button>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Taxonomy and streams</h2>
+        <dl>
+          <div>
+            <dt>Primary stream</dt>
+            <dd>{{ item.primaryStream?.name ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Technologies</dt>
+            <dd>
+              @for (technology of item.technologies; track technology.id) {
+                <span class="chip">{{ technology.name }}</span>
+              } @empty {
+                —
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Interests</dt>
+            <dd>
+              @for (interest of item.interests; track interest.id) {
+                <span class="chip">{{ interest.name }}</span>
+              } @empty {
+                —
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Streams</dt>
+            <dd>
+              @for (stream of item.streams; track stream.id) {
+                <span class="chip">{{ stream.name }}</span>
+              } @empty {
+                —
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+      @if (item.analysis; as analysis) {
+        <section class="panel analysis-attributes" aria-labelledby="analysis-attributes-heading">
+          <h2 id="analysis-attributes-heading">Analysis attributes</h2>
+          <dl>
+            <div>
+              <dt>Tags</dt>
+              <dd>{{ analysis.tags?.join(', ') || '—' }}</dd>
+            </div>
+            <div>
+              <dt>Scores</dt>
+              <dd>
+                Relevance {{ analysis.relevanceScore ?? '—' }} · Quality
+                {{ analysis.qualityScore ?? '—' }} · Final {{ analysis.finalScore ?? '—' }} ·
+                Urgency {{ analysis.urgencyScore ?? '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt>Material / complexity</dt>
+              <dd>{{ analysis.materialType ?? '—' }} / {{ analysis.complexityLevel ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Evergreen / breaking changes</dt>
+              <dd>
+                {{ analysis.evergreen ? 'Yes' : 'No' }} /
+                {{ analysis.breakingChanges ? 'Yes' : 'No' }}
+              </dd>
+            </div>
+            <div>
+              <dt>Digest eligible</dt>
+              <dd>
+                Daily: {{ analysis.shouldIncludeInDailyDigest ? 'Yes' : 'No' }} · Weekly:
+                {{ analysis.shouldIncludeInWeeklyDigest ? 'Yes' : 'No' }}
+              </dd>
+            </div>
+          </dl>
+          @if (releaseData().length || securityData().length) {
+            <div class="structured-data-groups">
+              @if (releaseData().length) {
+                <section aria-labelledby="release-data-heading">
+                  <h3 id="release-data-heading">Release data</h3>
+                  <dl class="structured-data">
+                    @for (entry of releaseData(); track entry.label) {
+                      <div>
+                        <dt>{{ entry.label }}</dt>
+                        <dd>{{ entry.value }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </section>
+              }
+              @if (securityData().length) {
+                <section aria-labelledby="security-data-heading">
+                  <h3 id="security-data-heading">Security data</h3>
+                  <dl class="structured-data">
+                    @for (entry of securityData(); track entry.label) {
+                      <div>
+                        <dt>{{ entry.label }}</dt>
+                        <dd>{{ entry.value }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </section>
+              }
+            </div>
+          }
+        </section>
+      }
+      <section class="panel analysis-panel">
+        <h2>Analysis</h2>
+        @if (item.analysis; as analysis) {
+          <dl>
+            <div>
+              <dt>Pre-screen relevant</dt>
+              <dd>
+                {{
+                  analysis.preScreenIsRelevant === null
+                    ? '—'
+                    : analysis.preScreenIsRelevant
+                      ? 'Yes'
+                      : 'No'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Pre-screen reason</dt>
+              <dd>{{ analysis.preScreenReason ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Pre-screened</dt>
+              <dd>{{ analysis.preScreenAt ? (analysis.preScreenAt | date: 'medium') : '—' }}</dd>
+            </div>
+            <div>
+              <dt>Full analysis</dt>
+              <dd>
+                {{ analysis.fullAnalysisAt ? (analysis.fullAnalysisAt | date: 'medium') : '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt>Short summary</dt>
+              <dd>{{ analysis.shortSummary ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Long summary</dt>
+              <dd>{{ analysis.longSummary ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Why it matters</dt>
+              <dd>{{ analysis.whyItMatters ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt>Practical value</dt>
+              <dd>{{ analysis.practicalValue ?? '—' }}</dd>
+            </div>
+          </dl>
+        } @else {
+          <p class="muted">No analysis stored.</p>
+        }
+      </section>
+    </div>
+    <dialog
+      #extractedContentDialog
+      class="content-dialog"
+      aria-labelledby="extracted-content-title"
+    >
+      <header class="content-dialog-header">
+        <h2 id="extracted-content-title">Extracted content</h2>
+        <button class="btn outline" type="button" autofocus (click)="closeExtractedContent()">
+          Close
+        </button>
+      </header>
+      <p class="raw-content">{{ plainContent() }}</p>
+    </dialog>
+  }
+</div>

@@ -1,0 +1,191 @@
+<div class="page taxonomy-page">
+  <header class="page-header">
+    <h1>Taxonomy</h1>
+    @if (tab() === 'technologies') {
+      <button class="btn primary" type="button" (click)="openCreate()">
+        Add technology or interest
+      </button>
+    }
+  </header>
+  <nav class="domain-tabs" aria-label="Taxonomy sections">
+    <a routerLink="/taxonomy" [class.active]="tab() === 'technologies'"
+      >Technologies and interests</a
+    >
+    <a
+      routerLink="/taxonomy"
+      [queryParams]="{ tab: 'streams' }"
+      [class.active]="tab() === 'streams'"
+      >Content streams</a
+    >
+  </nav>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (tab() === 'technologies') {
+    <form class="filters panel" (ngSubmit)="applyFilters()">
+      <label>Search names and aliases<input name="q" [(ngModel)]="filters['q']" /></label
+      ><label
+        >Kind<select name="kind" [(ngModel)]="filters['kind']">
+          <option value="">Both kinds</option>
+          <option value="technology">Technology</option>
+          <option value="interest">Interest</option>
+        </select></label
+      ><button class="btn primary" type="submit">Apply filters</button>
+    </form>
+    <section class="panel" aria-label="Technologies and interests">
+      @if (loading()) {
+        <p class="loading" role="status">Loading topics…</p>
+      } @else if (!taxonomy().length) {
+        <p class="empty">No topics found.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Kind</th>
+                <th>Related streams</th>
+                <th>Coverage</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of taxonomy(); track item.id) {
+                <tr
+                  [appTableRowLink]="['/taxonomy', item.id]"
+                  [appTableRowLabel]="'Open ' + item.kind + ' ' + item.name"
+                >
+                  <td>
+                    <a [routerLink]="['/taxonomy', item.id]">{{ item.name }}</a>
+                  </td>
+                  <td>{{ item.kind }}</td>
+                  <td>
+                    @for (stream of item.relatedStreams; track stream.id) {
+                      <span class="chip">{{ stream.name }}</span>
+                    } @empty {
+                      —
+                    }
+                  </td>
+                  <td>
+                    {{ item.coverage.active }} active · {{ item.coverage.degraded }} degraded ·
+                    {{ item.coverage.disabled }} disabled
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="panel" aria-label="Content streams">
+      @if (loading()) {
+        <p class="loading" role="status">Loading streams…</p>
+      } @else if (!streams().length) {
+        <p class="empty">No streams found.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Key</th>
+                <th>Description</th>
+                <th>Enabled</th>
+                <th>Sort order</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (stream of streams(); track stream.id) {
+                <tr
+                  class="stream-row"
+                  tabindex="0"
+                  [attr.aria-label]="'Edit content stream ' + stream.name"
+                  (click)="editStreamFromRow($event, stream)"
+                  (keydown.enter)="editStreamFromKey($event, stream)"
+                  (keydown.space)="editStreamFromKey($event, stream)"
+                >
+                  <td>
+                    <button
+                      class="text-link"
+                      type="button"
+                      (click)="$event.stopPropagation(); startEdit(stream)"
+                    >
+                      {{ stream.name }}
+                    </button>
+                  </td>
+                  <td>{{ stream.key }}</td>
+                  <td>{{ stream.description || '—' }}</td>
+                  <td>{{ stream.enabled ? 'Yes' : 'No' }}</td>
+                  <td>{{ stream.sortOrder }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+    @if (editingStream(); as stream) {
+      <form class="edit-form panel" (ngSubmit)="saveStream()">
+        <h2>Edit {{ stream.name }}</h2>
+        <p class="muted">Key: {{ stream.key }} (immutable)</p>
+        <label class="checkbox"
+          ><input name="enabled" type="checkbox" [(ngModel)]="editForm.enabled" /> Enabled</label
+        >
+        <label>Name<input name="name" required [(ngModel)]="editForm.name" /></label
+        ><label>Description<input name="description" [(ngModel)]="editForm.description" /></label
+        ><label
+          >Sort order<input name="sortOrder" type="number" [(ngModel)]="editForm.sortOrder"
+        /></label>
+        <div class="actions">
+          <button class="btn primary" type="submit" [disabled]="pending()">Save stream</button
+          ><button class="btn outline" type="button" (click)="editingStream.set(null)">
+            Cancel
+          </button>
+        </div>
+      </form>
+    }
+  }
+  @if (tab() === 'technologies' && totalPages() > 1) {
+    <div class="pagination">
+      <span>{{ total() }} results · Page {{ page() }} of {{ totalPages() }}</span>
+      <div>
+        <button
+          class="btn outline"
+          type="button"
+          [disabled]="page() === 1"
+          (click)="changePage(page() - 1)"
+        >
+          Previous</button
+        ><button
+          class="btn outline"
+          type="button"
+          [disabled]="page() === totalPages()"
+          (click)="changePage(page() + 1)"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+  <dialog #createDialog class="create-dialog" aria-labelledby="create-taxonomy-title">
+    <h2 id="create-taxonomy-title">Add technology or interest</h2>
+    @if (createError()) {
+      <p class="error-box" role="alert">{{ createError() }}</p>
+    }
+    <form (ngSubmit)="create()">
+      <label>Name<input name="name" required [(ngModel)]="createForm.name" /></label>
+      <label
+        >Kind<select name="kind" [(ngModel)]="createForm.kind">
+          <option value="technology">Technology</option>
+          <option value="interest">Interest</option>
+        </select></label
+      >
+      <div class="actions">
+        <button class="btn outline" type="button" (click)="closeCreate()">Cancel</button>
+        <button class="btn primary" type="submit" [disabled]="pending()">
+          {{ pending() ? 'Adding…' : 'Add technology or interest' }}
+        </button>
+      </div>
+    </form>
+  </dialog>
+</div>

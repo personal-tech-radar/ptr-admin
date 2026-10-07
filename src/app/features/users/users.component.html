@@ -1,0 +1,167 @@
+<div class="page users-page">
+  <header class="page-header">
+    <div>
+      <h1>Users</h1>
+    </div>
+  </header>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  <form class="filters panel" (ngSubmit)="applyFilters()">
+    <label>Email<input name="email" type="search" [(ngModel)]="filters['email']" /></label>
+    <label
+      >Registered from (UTC)<input
+        name="registeredFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['registeredFrom']" /></label
+    ><label
+      >Registered to (UTC)<input
+        name="registeredTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['registeredTo']"
+    /></label>
+    <label
+      >Verified<select name="verified" [(ngModel)]="filters['verified']">
+        <option value="">Any</option>
+        <option value="true">Yes</option>
+        <option value="false">No</option>
+      </select></label
+    >
+    <label
+      >Verified from (UTC)<input
+        name="verifiedFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['verifiedFrom']" /></label
+    ><label
+      >Verified to (UTC)<input
+        name="verifiedTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['verifiedTo']"
+    /></label>
+    <label
+      >Onboarding<select name="onboardingCompleted" [(ngModel)]="filters['onboardingCompleted']">
+        <option value="">Any</option>
+        <option value="true">Completed</option>
+        <option value="false">Not completed</option>
+      </select></label
+    >
+    <label
+      >Onboarding from (UTC)<input
+        name="onboardingFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['onboardingFrom']" /></label
+    ><label
+      >Onboarding to (UTC)<input
+        name="onboardingTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['onboardingTo']"
+    /></label>
+    <label
+      >Activity period<select name="activityPeriod" [(ngModel)]="filters['activityPeriod']">
+        <option value="">Default seven days</option>
+        <option value="24h">24 hours</option>
+        <option value="7d">7 days</option>
+        <option value="30d">30 days</option>
+      </select></label
+    >
+    <label
+      >Activity from (UTC)<input
+        name="activityFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['activityFrom']" /></label
+    ><label
+      >Activity to (UTC)<input
+        name="activityTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['activityTo']"
+    /></label>
+    <button class="btn primary" type="submit">Apply filters</button>
+  </form>
+  @if (activityWindow(); as window) {
+    <p class="muted">
+      Activity window: {{ window.from | date: 'medium' }} – {{ window.to | date: 'medium' }}
+    </p>
+  }
+  <section class="panel" aria-label="User list">
+    @if (loading()) {
+      <p class="loading" role="status">Loading users…</p>
+    } @else if (!users().length) {
+      <p class="empty">No users found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th>Email / name</th>
+              <th>Registered</th>
+              <th>Email verified</th>
+              <th>Onboarding completed</th>
+              <th>Period activity</th>
+              <th>Selected technologies / interests</th>
+              <th>Selected streams</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr
+                class="user-row"
+                tabindex="0"
+                [attr.aria-label]="'Open user ' + user.email"
+                (click)="openUser(user.id)"
+                (keydown.enter)="openUser(user.id)"
+              >
+                <td>
+                  {{ user.email }}<br /><span class="muted">{{ user.displayName }}</span>
+                </td>
+                <td>{{ user.createdAt | date: 'medium' }}</td>
+                <td>
+                  {{ user.emailVerifiedAt ? (user.emailVerifiedAt | date: 'medium') : 'No' }}
+                </td>
+                <td>
+                  {{
+                    user.onboardingCompletedAt
+                      ? (user.onboardingCompletedAt | date: 'medium')
+                      : 'No'
+                  }}
+                </td>
+                <td>
+                  @if (!user.periodActivity.active) {
+                    Inactive
+                  } @else {
+                    {{ user.periodActivity.opens }} opens · {{ user.periodActivity.saves }} saves ·
+                    {{ user.periodActivity.usefulFeedback }} useful ·
+                    {{ user.periodActivity.notUsefulFeedback }} not useful
+                  }
+                </td>
+                <td>{{ taxonomySelectionLabels(user) }}</td>
+                <td>{{ streamSelectionLabels(user) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @if (!loading() && users().length) {
+      <div class="pagination">
+        <span>{{ total() }} users · Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous</button
+          ><button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</div>

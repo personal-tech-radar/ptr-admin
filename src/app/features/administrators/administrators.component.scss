@@ -1,0 +1,29 @@
+.administrators-page {
+  display: grid;
+  gap: 18px;
+}
+.create-dialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  width: min(440px, calc(100% - 30px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 26px;
+}
+.create-dialog::backdrop {
+  background: #000a;
+}
+.actions {
+  display: flex;
+  justify-content: end;
+  gap: 8px;
+}
+.pagination .btn {
+  margin-left: 6px;
+}

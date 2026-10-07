@@ -1,0 +1,93 @@
+<section class="page source-detail candidate-detail">
+  <a class="text-link" routerLink="/sources" [queryParams]="{ tab: 'candidates' }">← Candidates</a>
+  @if (loading()) {
+    <div class="loading" role="status">Loading candidate…</div>
+  }
+  @if (error()) {
+    <div class="error-box" role="alert">{{ error() }}</div>
+  }
+  @if (candidate(); as item) {
+    <header class="page-header">
+      <div>
+        <span class="badge source-status" [class]="'badge source-status ' + item.status">{{
+          item.status
+        }}</span>
+        <h1>{{ item.proposedName || item.domain }}</h1>
+        <a [href]="item.normalizedUrl" target="_blank" rel="noopener noreferrer">{{
+          item.normalizedUrl
+        }}</a>
+      </div>
+    </header>
+    <div class="detail-grid">
+      <section class="panel detail-section">
+        <h2>Proposal context</h2>
+        <dl>
+          <div>
+            <dt>Origin</dt>
+            <dd>{{ item.origin.replaceAll('_', ' ') }}</dd>
+          </div>
+          <div>
+            <dt>Relevance reason</dt>
+            <dd>{{ item.relevanceReason || 'No reason supplied' }}</dd>
+          </div>
+          <div>
+            <dt>Technology / interest</dt>
+            <dd>{{ item.technologyInterestName || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Stream</dt>
+            <dd>{{ item.contentStreamName || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Expected type</dt>
+            <dd>{{ item.expectedSourceType || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Proposed name</dt>
+            <dd>{{ item.proposedName || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd>{{ item.createdAt | date: 'medium' }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section class="panel detail-section">
+        <h2>Validation result</h2>
+        <dl>
+          <div>
+            <dt>Detected type</dt>
+            <dd>{{ item.detectedType || '—' }}</dd>
+          </div>
+          <div>
+            <dt>Last validated</dt>
+            <dd>{{ item.lastValidatedAt ? (item.lastValidatedAt | date: 'medium') : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Rejection reason</dt>
+            <dd>{{ item.rejectionCode || 'None' }}</dd>
+          </div>
+          <div>
+            <dt>Validation error</dt>
+            <dd>{{ item.validationError || 'None' }}</dd>
+          </div>
+          <div>
+            <dt>Activated source</dt>
+            <dd>
+              @if (item.activatedSourceId) {
+                <a [routerLink]="['/sources', item.activatedSourceId]">View source →</a>
+              } @else {
+                None
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+    <div class="detail-actions">
+      <button class="btn outline" type="button" [disabled]="pending()" (click)="retry()">
+        Retry onboarding
+      </button>
+    </div>
+  }
+</section>

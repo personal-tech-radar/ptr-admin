@@ -1,0 +1,148 @@
+<div class="page digest-detail">
+  <a routerLink="/digests">← Digests</a>
+  @if (loading()) {
+    <p class="loading" role="status">Loading digest…</p>
+  }
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (digest(); as item) {
+    <header class="page-header">
+      <div>
+        <h1>{{ item.subject }}</h1>
+        @if (item.deliveryMode === 'admin_preview') {
+          <p class="preview-label">Administrator preview — delivered only to administrator</p>
+        }
+        <p class="muted">
+          <span
+            class="badge"
+            [class.sent]="item.status === 'sent'"
+            [class.failed]="item.status === 'failed'"
+            >{{ item.status }}</span
+          >
+          · {{ item.articleCount }} articles
+        </p>
+      </div>
+      <button class="btn outline" type="button" [disabled]="pending()" (click)="resend()">
+        Resend stored digest
+      </button>
+    </header>
+    <div class="digest-sections">
+      <section class="panel">
+        <h2>Delivery and recipient</h2>
+        <dl>
+          <div>
+            <dt>Profile owner</dt>
+            <dd>
+              @if (item.userId) {
+                <a [routerLink]="['/users', item.userId]">{{ item.userEmail ?? item.userId }}</a>
+              } @else {
+                {{ item.userEmail ?? 'Unavailable for legacy record' }}
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Actual recipient</dt>
+            <dd>{{ item.actualRecipientEmail ?? item.userEmail ?? 'Unknown recipient' }}</dd>
+          </div>
+          <div>
+            <dt>Delivery mode</dt>
+            <dd>
+              {{ item.deliveryMode === 'admin_preview' ? 'Administrator preview' : 'Scheduled' }}
+            </dd>
+          </div>
+          <div>
+            <dt>Type</dt>
+            <dd>{{ item.type }}</dd>
+          </div>
+          <div>
+            <dt>Period</dt>
+            <dd>{{ item.periodStart | date: 'medium' }} – {{ item.periodEnd | date: 'medium' }}</dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd>{{ item.createdAt | date: 'medium' }}</dd>
+          </div>
+          <div>
+            <dt>Sent</dt>
+            <dd>{{ item.sentAt ? (item.sentAt | date: 'medium') : '—' }}</dd>
+          </div>
+          @if (item.intro) {
+            <div class="digest-intro">
+              <dt>Introduction</dt>
+              <dd>{{ item.intro }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+      <section class="panel">
+        <h2>Stream pages</h2>
+        @if (item.streamPages.length) {
+          <ul class="stream-pages">
+            @for (stream of item.streamPages; track stream.id) {
+              <li>
+                <a [href]="stream.url" target="_blank" rel="noopener noreferrer"
+                  >{{ stream.streamName }} ↗</a
+                >
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">No stream pages stored.</p>
+        }
+      </section>
+      <section class="panel">
+        <h2>Included articles</h2>
+        @if (item.items.length) {
+          <ol class="digest-articles">
+            @for (article of item.items; track article.id) {
+              <li class="digest-article">
+                <p class="article-position">Article {{ article.position }}</p>
+                <h3>
+                  <a [routerLink]="['/articles', article.articleId]">{{ article.article.title }}</a>
+                </h3>
+                @if (article.shortDescription) {
+                  <p class="article-summary">{{ article.shortDescription }}</p>
+                } @else {
+                  <p class="article-summary muted">
+                    Short description unavailable for this stored template.
+                  </p>
+                }
+                @if (article.scoreBreakdown; as scores) {
+                  <dl class="score-breakdown" aria-label="Article score breakdown">
+                    <div>
+                      <dt>Quality</dt>
+                      <dd>{{ scores.qualityScore }}</dd>
+                    </div>
+                    <div>
+                      <dt>Recency</dt>
+                      <dd>{{ scores.recencyScore }}</dd>
+                    </div>
+                    <div>
+                      <dt>Technology</dt>
+                      <dd>{{ scores.technologyMatch }}</dd>
+                    </div>
+                    <div>
+                      <dt>Interest</dt>
+                      <dd>{{ scores.interestMatch }}</dd>
+                    </div>
+                    <div>
+                      <dt>Complexity</dt>
+                      <dd>{{ scores.complexityMatch }}</dd>
+                    </div>
+                    <div>
+                      <dt>Source preference</dt>
+                      <dd>{{ scores.sourcePreferenceAdjustment }}</dd>
+                    </div>
+                  </dl>
+                }
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="muted">No articles were included.</p>
+        }
+      </section>
+    </div>
+  }
+</div>

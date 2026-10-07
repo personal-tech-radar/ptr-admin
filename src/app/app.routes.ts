@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { inject } from '@angular/core';
+import { Router, Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -20,15 +21,102 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
-      ...['articles', 'sources', 'taxonomy', 'coverage', 'users', 'digests', 'jobs', 'admins'].map(
-        (path) => ({
-          path,
-          title: path[0].toUpperCase() + path.slice(1),
-          loadComponent: () =>
-            import('./features/admin-page/admin-page.component').then((m) => m.AdminPageComponent),
-          data: { resource: path },
-        }),
-      ),
+      {
+        path: 'users/:id',
+        title: 'User detail',
+        loadComponent: () =>
+          import('./features/users/user-detail.component').then((m) => m.UserDetailComponent),
+      },
+      {
+        path: 'users',
+        title: 'Users',
+        loadComponent: () =>
+          import('./features/users/users.component').then((m) => m.UsersComponent),
+      },
+      {
+        path: 'digests/:id',
+        title: 'Digest detail',
+        loadComponent: () =>
+          import('./features/digests/digest-detail.component').then((m) => m.DigestDetailComponent),
+      },
+      {
+        path: 'digests',
+        title: 'Digests',
+        loadComponent: () =>
+          import('./features/digests/digests.component').then((m) => m.DigestsComponent),
+      },
+      {
+        path: 'jobs/:queue/:id',
+        title: 'Job detail',
+        loadComponent: () =>
+          import('./features/jobs/job-detail.component').then((m) => m.JobDetailComponent),
+      },
+      {
+        path: 'jobs',
+        title: 'Queues',
+        loadComponent: () => import('./features/jobs/jobs.component').then((m) => m.JobsComponent),
+      },
+      {
+        path: 'articles/:id',
+        title: 'Article detail',
+        loadComponent: () =>
+          import('./features/articles/article-detail.component').then(
+            (m) => m.ArticleDetailComponent,
+          ),
+      },
+      {
+        path: 'articles',
+        title: 'Articles',
+        loadComponent: () =>
+          import('./features/articles/articles.component').then((m) => m.ArticlesComponent),
+      },
+      {
+        path: 'taxonomy/:id',
+        title: 'Taxonomy detail',
+        loadComponent: () =>
+          import('./features/taxonomy/taxonomy-detail.component').then(
+            (m) => m.TaxonomyDetailComponent,
+          ),
+      },
+      {
+        path: 'taxonomy',
+        title: 'Taxonomy',
+        loadComponent: () =>
+          import('./features/taxonomy/taxonomy.component').then((m) => m.TaxonomyComponent),
+      },
+      {
+        path: 'coverage',
+        pathMatch: 'full',
+        redirectTo: () => inject(Router).createUrlTree(['/taxonomy']),
+      },
+      {
+        path: 'sources/candidates/:id',
+        title: 'Candidate detail',
+        loadComponent: () =>
+          import('./features/sources/candidate-detail.component').then(
+            (m) => m.CandidateDetailComponent,
+          ),
+      },
+      {
+        path: 'sources/:id',
+        title: 'Source detail',
+        loadComponent: () =>
+          import('./features/sources/source-detail.component').then((m) => m.SourceDetailComponent),
+      },
+      {
+        path: 'sources',
+        title: 'Sources',
+        loadComponent: () =>
+          import('./features/sources/sources.component').then((m) => m.SourcesComponent),
+      },
+      {
+        path: 'admins',
+        title: 'Administrators',
+        loadComponent: () =>
+          import('./features/administrators/administrators.component').then(
+            (m) => m.AdministratorsComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

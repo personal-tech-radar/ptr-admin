@@ -3,6 +3,8 @@
 /tmp
 /out-tsc
 /coverage
+/playwright-report/
+/test-results/
 /.angular
 *.tsbuildinfo
 

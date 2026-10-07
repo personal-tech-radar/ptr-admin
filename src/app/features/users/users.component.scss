@@ -1,0 +1,27 @@
+.users-page {
+  display: grid;
+  gap: 18px;
+}
+.filters {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.filters label {
+  margin: 0;
+}
+.users-table .user-row {
+  cursor: pointer;
+}
+.users-table .user-row:hover td {
+  background: var(--panel-2);
+}
+.users-table .user-row:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: -2px;
+}
+.pagination .btn {
+  margin-left: 6px;
+}

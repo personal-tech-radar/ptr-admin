@@ -1,0 +1,85 @@
+<div class="page administrators-page">
+  <header class="page-header">
+    <div>
+      <h1>Administrators</h1>
+    </div>
+    <button class="btn primary" type="button" (click)="openCreate()">Add administrator</button>
+  </header>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  <section class="panel" aria-label="Administrators">
+    @if (loading()) {
+      <p class="loading" role="status">Loading administrators…</p>
+    } @else if (!administrators().length) {
+      <p class="empty">No administrators found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Created</th>
+              <th>Last login</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (admin of administrators(); track admin.id) {
+              <tr>
+                <td>{{ admin.email }}</td>
+                <td>{{ admin.createdAt | date: 'medium' }}</td>
+                <td>{{ admin.lastLoginAt ? (admin.lastLoginAt | date: 'medium') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @if (!loading() && administrators().length) {
+      <div class="pagination">
+        <span>Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous</button
+          ><button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+  <dialog #createDialog class="create-dialog" (close)="createError.set('')">
+    <form (ngSubmit)="create()">
+      <h2>Add administrator</h2>
+      <p class="muted">Create a new administrator account.</p>
+      <label>Email<input name="email" type="email" required [(ngModel)]="form.email" /></label
+      ><label
+        >Password<input
+          name="password"
+          type="password"
+          minlength="8"
+          required
+          [(ngModel)]="form.password"
+      /></label>
+      @if (createError()) {
+        <p class="error-box" role="alert">{{ createError() }}</p>
+      }
+      <div class="actions">
+        <button class="btn outline" type="button" (click)="closeCreate()">Cancel</button
+        ><button class="btn primary" type="submit" [disabled]="pending()">
+          {{ pending() ? 'Creating…' : 'Create' }}
+        </button>
+      </div>
+    </form>
+  </dialog>
+</div>

@@ -1,0 +1,274 @@
+<section class="page source-detail">
+  <a class="text-link" routerLink="/sources">← Sources</a>
+  @if (loading()) {
+    <div class="loading" role="status">Loading source…</div>
+  }
+  @if (error()) {
+    <div class="error-box" role="alert">{{ error() }}</div>
+  }
+  @if (source(); as item) {
+    <header class="page-header">
+      <div>
+        <span class="badge source-status" [class]="'badge source-status ' + item.status">{{
+          item.status
+        }}</span>
+        <h1>{{ item.name }}</h1>
+        <a [href]="item.url" target="_blank" rel="noopener noreferrer">{{ item.url }}</a>
+      </div>
+      <div class="header-source-actions">
+        @if (item.status === 'disabled') {
+          <button
+            class="btn primary"
+            type="button"
+            [disabled]="pending()"
+            (click)="action('activate')"
+          >
+            Activate
+          </button>
+        } @else {
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="pending()"
+            (click)="action('disable')"
+          >
+            Disable
+          </button>
+        }
+        <button class="btn danger" type="button" [disabled]="pending()" (click)="remove()">
+          Soft-delete source
+        </button>
+      </div>
+    </header>
+    <div class="detail-grid">
+      <section class="panel detail-section">
+        <h2>Lifecycle</h2>
+        <dl>
+          <div>
+            <dt>Type</dt>
+            <dd>{{ item.type }}</dd>
+          </div>
+          <div>
+            <dt>Category</dt>
+            <dd>{{ item.category.replaceAll('_', ' ') }}</dd>
+          </div>
+          <div>
+            <dt>Enabled</dt>
+            <dd>{{ item.enabled ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div>
+            <dt>Trust score</dt>
+            <dd>{{ item.trustScore }}</dd>
+          </div>
+          <div>
+            <dt>Consecutive failures</dt>
+            <dd>{{ item.consecutiveFailures }}</dd>
+          </div>
+          <div>
+            <dt>Last successful fetch</dt>
+            <dd>
+              {{ item.lastSuccessfulFetchAt ? (item.lastSuccessfulFetchAt | date: 'medium') : '—' }}
+            </dd>
+          </div>
+          <div>
+            <dt>Last attempt</dt>
+            <dd>{{ item.lastAttemptAt ? (item.lastAttemptAt | date: 'medium') : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Last error</dt>
+            <dd>{{ item.lastError || 'None' }}</dd>
+          </div>
+          <div>
+            <dt>Added</dt>
+            <dd>{{ item.createdAt | date: 'medium' }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section class="panel detail-section">
+        <h2>Content and user signals</h2>
+        <p class="muted">
+          {{ item.period.from | date: 'medium' : 'UTC' }}–{{
+            item.period.to | date: 'medium' : 'UTC'
+          }}
+          UTC
+        </p>
+        <dl>
+          <div>
+            <dt>Articles received in period</dt>
+            <dd>{{ item.volume.receivedArticles }}</dd>
+          </div>
+          <div>
+            <dt>Total retained articles</dt>
+            <dd>{{ item.volume.totalArticles }}</dd>
+          </div>
+          <div>
+            <dt>Successful attempts</dt>
+            <dd>{{ item.volume.successfulAttempts }}</dd>
+          </div>
+          <div>
+            <dt>Failed attempts</dt>
+            <dd>{{ item.volume.failedAttempts }}</dd>
+          </div>
+          <div>
+            <dt>Publications processed</dt>
+            <dd>{{ item.volume.publicationsProcessed }}</dd>
+          </div>
+          <div>
+            <dt>Interaction score</dt>
+            <dd>{{ item.includedSignalCount > 0 ? item.interactionScore : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Opens</dt>
+            <dd>{{ item.signals.opened }}</dd>
+          </div>
+          <div>
+            <dt>Saves</dt>
+            <dd>{{ item.signals.saved }}</dd>
+          </div>
+          <div>
+            <dt>Useful feedback</dt>
+            <dd>{{ item.signals.useful }}</dd>
+          </div>
+          <div>
+            <dt>Not useful feedback</dt>
+            <dd>{{ item.signals.notUseful }}</dd>
+          </div>
+        </dl>
+        <a class="text-link" [attr.href]="'/articles?sourceId=' + item.id"
+          >View source articles →</a
+        >
+      </section>
+      <section class="panel detail-section">
+        <h2>Taxonomy and streams</h2>
+        <h3>Technologies</h3>
+        <ul>
+          @for (entry of item.associatedTechnologies; track entry.id) {
+            <li>{{ entry.name }}</li>
+          } @empty {
+            <li>No technologies</li>
+          }
+        </ul>
+        <h3>Interests</h3>
+        <ul>
+          @for (entry of item.associatedInterests; track entry.id) {
+            <li>{{ entry.name }}</li>
+          } @empty {
+            <li>No interests</li>
+          }
+        </ul>
+        <h3>Streams</h3>
+        <ul>
+          @for (entry of item.associatedStreams; track entry.id) {
+            <li>{{ entry.key }}</li>
+          } @empty {
+            <li>No streams</li>
+          }
+        </ul>
+      </section>
+      @if (item.type === 'web') {
+        <section class="panel detail-section">
+          <h2>Processing recipe</h2>
+          @if (item.webConfig; as recipe) {
+            <dl>
+              <div>
+                <dt>Preferred discovery</dt>
+                <dd>{{ recipe.preferredDiscoveryMethod || 'Automatic' }}</dd>
+              </div>
+              <div>
+                <dt>Preferred extraction</dt>
+                <dd>{{ recipe.preferredExtractionMethod || 'Automatic' }}</dd>
+              </div>
+              <div>
+                <dt>Last validation</dt>
+                <dd>
+                  {{ recipe.lastValidatedAt ? (recipe.lastValidatedAt | date: 'medium') : '—' }}
+                </dd>
+              </div>
+              <div>
+                <dt>Sitemap URL</dt>
+                <dd>{{ recipe.sitemapUrl || 'None' }}</dd>
+              </div>
+              <div>
+                <dt>Entry URLs</dt>
+                <dd>{{ recipe.entryUrls.join(', ') || 'None' }}</dd>
+              </div>
+              <div>
+                <dt>Article link selector</dt>
+                <dd>{{ recipe.articleLinkSelector || 'None' }}</dd>
+              </div>
+              <div>
+                <dt>Article content selector</dt>
+                <dd>{{ recipe.articleContentSelector || 'None' }}</dd>
+              </div>
+              <div>
+                <dt>Next page selector</dt>
+                <dd>{{ recipe.nextPageSelector || 'None' }}</dd>
+              </div>
+              <div>
+                <dt>Allowed paths</dt>
+                <dd>{{ recipe.allowedPathPatterns.join(', ') || 'None' }}</dd>
+              </div>
+              <div>
+                <dt>Excluded paths</dt>
+                <dd>{{ recipe.excludedPathPatterns.join(', ') || 'None' }}</dd>
+              </div>
+            </dl>
+          } @else {
+            <p class="muted">
+              No processing recipe has been stored yet. Automatic discovery uses the source URL.
+            </p>
+          }
+        </section>
+      }
+    </div>
+    <section class="panel detail-section">
+      <h2>Recent ingestion attempts</h2>
+      @if (item.recentAttempts.length === 0) {
+        <p class="muted">No retained attempts.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Started</th>
+                <th>Completed</th>
+                <th>Publications</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (attempt of item.recentAttempts; track attempt.id) {
+                <tr>
+                  <td>{{ attempt.succeeded ? 'Succeeded' : 'Failed' }}</td>
+                  <td>{{ attempt.startedAt | date: 'medium' }}</td>
+                  <td>{{ attempt.completedAt ? (attempt.completedAt | date: 'medium') : '—' }}</td>
+                  <td>{{ attempt.publicationsProcessed }}</td>
+                  <td>{{ attempt.error || '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+    <section class="detail-actions" aria-label="Source actions">
+      <button
+        class="btn outline"
+        type="button"
+        [disabled]="pending()"
+        (click)="action('retry-validation')"
+      >
+        Retry validation
+      </button>
+      <button
+        class="btn outline"
+        type="button"
+        [disabled]="pending()"
+        (click)="action('retry-ingestion')"
+      >
+        Retry ingestion
+      </button>
+    </section>
+  }
+</section>
