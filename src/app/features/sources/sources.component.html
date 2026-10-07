@@ -1,0 +1,329 @@
+<section class="page sources-page">
+  <header class="page-header">
+    <div>
+      <h1>Sources</h1>
+    </div>
+    @if (tab() === 'sources') {
+      <button class="btn primary" type="button" (click)="openCreate()">Add source</button>
+    }
+  </header>
+
+  <nav class="tabs" aria-label="Source sections">
+    <a routerLink="/sources" [class.active]="tab() === 'sources'">Sources</a>
+    <a
+      routerLink="/sources"
+      [queryParams]="{ tab: 'candidates' }"
+      [class.active]="tab() === 'candidates'"
+      >Candidates</a
+    >
+  </nav>
+
+  <form class="domain-filters panel" (ngSubmit)="applyFilters()">
+    @if (tab() === 'sources') {
+      <label>Search<input name="q" [(ngModel)]="filters['q']" placeholder="Name or URL" /></label>
+      <label
+        >Lifecycle
+        <select name="status" [(ngModel)]="filters['status']">
+          <option value="">All</option>
+          <option value="active">Active</option>
+          <option value="degraded">Degraded</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </label>
+      <label
+        >Type
+        <select name="type" [(ngModel)]="filters['type']">
+          <option value="">All</option>
+          @for (type of sourceTypes; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+      </label>
+      <label
+        >Group
+        <select name="sourceGroup" [(ngModel)]="filters['sourceGroup']">
+          <option value="">All</option>
+          <option value="feeds">Feeds</option>
+          <option value="web">Web</option>
+          <option value="github_release">GitHub Releases</option>
+        </select>
+      </label>
+      <label
+        >Category
+        <select name="category" [(ngModel)]="filters['category']">
+          <option value="">All</option>
+          @for (category of sourceCategories; track category) {
+            <option [value]="category">{{ category.replaceAll('_', ' ') }}</option>
+          }
+        </select>
+      </label>
+      <label
+        >Enabled
+        <select name="enabled" [(ngModel)]="filters['enabled']">
+          <option value="">All</option>
+          <option value="true">Enabled</option>
+          <option value="false">Disabled</option>
+        </select>
+      </label>
+      <label
+        >Article period
+        <select name="period" [(ngModel)]="filters['period']">
+          <option value="24h">24 hours</option>
+          <option value="7d">7 days</option>
+          <option value="30d">30 days</option>
+        </select>
+      </label>
+    } @else {
+      <label
+        >Status
+        <select name="status" [(ngModel)]="filters['status']">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="active">Active</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </label>
+      <label
+        >Origin
+        <select name="origin" [(ngModel)]="filters['origin']">
+          <option value="">All</option>
+          <option value="user_submission">User submission</option>
+          <option value="technology">Technology</option>
+          <option value="interest">Interest</option>
+          <option value="seed">Seed</option>
+        </select>
+      </label>
+      <label
+        >Expected type
+        <select name="expectedSourceType" [(ngModel)]="filters['expectedSourceType']">
+          <option value="">All</option>
+          @for (type of sourceTypes; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+      </label>
+      <label
+        >Detected type
+        <select name="detectedType" [(ngModel)]="filters['detectedType']">
+          <option value="">All</option>
+          <option value="rss">RSS</option>
+          <option value="atom">Atom</option>
+          <option value="web">Web</option>
+        </select>
+      </label>
+    }
+    <label
+      >Technology / interest
+      <select name="technologyInterestId" [(ngModel)]="filters['technologyInterestId']">
+        <option value="">All</option>
+        @for (item of taxonomyOptions(); track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+    </label>
+    <label
+      >Stream
+      <select name="streamId" [(ngModel)]="filters['streamId']">
+        <option value="">All</option>
+        @for (item of streamOptions(); track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select>
+    </label>
+    <label
+      >Created from (UTC)<input
+        name="createdFrom"
+        [(ngModel)]="filters['createdFrom']"
+        placeholder="YYYY-MM-DD or ISO time"
+    /></label>
+    <label
+      >Created to (UTC)<input
+        name="createdTo"
+        [(ngModel)]="filters['createdTo']"
+        placeholder="YYYY-MM-DD or ISO time"
+    /></label>
+    <button class="btn primary" type="submit">Apply filters</button>
+  </form>
+
+  @if (error()) {
+    <div class="error-box" role="alert">{{ error() }}</div>
+  }
+  @if (filterOptionsError()) {
+    <div class="error-box" role="alert">{{ filterOptionsError() }}</div>
+  }
+  @if (tab() === 'sources' && sourcePeriod(); as bounds) {
+    <p class="muted period-hint">
+      Period article count: {{ bounds.from | date: 'medium' : 'UTC' }}–{{
+        bounds.to | date: 'medium' : 'UTC'
+      }}
+      UTC.
+    </p>
+  }
+  <div class="panel table-panel">
+    @if (loading()) {
+      <div class="loading" role="status">Loading {{ tab() }}…</div>
+    } @else if (total() === 0) {
+      <div class="empty">
+        <strong>No {{ tab() }} found</strong
+        ><span class="muted">Adjust the filters or try again later.</span>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        @if (tab() === 'sources') {
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Name / domain</th>
+                <th>Type / method</th>
+                <th>Category</th>
+                <th>Period article count</th>
+                <th>Engagement</th>
+                <th>Added</th>
+                <th>Last successful fetch</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (source of sources(); track source.id) {
+                <tr
+                  [class.new-row]="source.id === createdId()"
+                  [appTableRowLink]="['/sources', source.id]"
+                  [appTableRowQueryParams]="{ period: periodValue() }"
+                  [appTableRowLabel]="'Open source ' + source.name"
+                >
+                  <td>
+                    <span class="badge" [class]="'badge ' + source.status">{{
+                      source.status
+                    }}</span>
+                  </td>
+                  <td>
+                    <a
+                      [routerLink]="['/sources', source.id]"
+                      [queryParams]="{ period: periodValue() }"
+                      >{{ source.name }}</a
+                    ><small>{{ source.url }}</small>
+                  </td>
+                  <td>
+                    {{ source.type
+                    }}{{
+                      source.type === 'web' && source.webConfig?.preferredExtractionMethod
+                        ? ' / ' + source.webConfig?.preferredExtractionMethod
+                        : ''
+                    }}
+                  </td>
+                  <td>{{ source.category.replaceAll('_', ' ') }}</td>
+                  <td>{{ source.periodArticleCount }}</td>
+                  <td>{{ engagement(source) }}</td>
+                  <td>{{ source.createdAt | date: 'mediumDate' }}</td>
+                  <td>
+                    {{
+                      source.lastSuccessfulFetchAt
+                        ? (source.lastSuccessfulFetchAt | date: 'medium')
+                        : '—'
+                    }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>URL / domain</th>
+                <th>Origin</th>
+                <th>Expected / detected type</th>
+                <th>Technology / stream</th>
+                <th>Rejection reason</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (candidate of candidates(); track candidate.id) {
+                <tr
+                  [appTableRowLink]="['/sources/candidates', candidate.id]"
+                  [appTableRowLabel]="
+                    'Open candidate ' + (candidate.proposedName || candidate.domain)
+                  "
+                >
+                  <td>
+                    <span class="badge" [class]="'badge ' + candidate.status">{{
+                      candidate.status
+                    }}</span>
+                  </td>
+                  <td>
+                    <a [routerLink]="['/sources/candidates', candidate.id]">{{
+                      candidate.normalizedUrl
+                    }}</a
+                    ><small>{{ candidate.domain }}</small>
+                  </td>
+                  <td>{{ candidate.origin.replaceAll('_', ' ') }}</td>
+                  <td>
+                    {{ candidate.expectedSourceType || '—' }} / {{ candidate.detectedType || '—' }}
+                  </td>
+                  <td>
+                    {{ candidate.technologyInterestName || '—' }} /
+                    {{ candidate.contentStreamName || '—' }}
+                  </td>
+                  <td>{{ candidate.rejectionCode || candidate.validationError || '—' }}</td>
+                  <td>{{ candidate.createdAt | date: 'mediumDate' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+      <footer class="pagination">
+        <span class="muted">{{ total() }} records · Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline small"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous</button
+          ><button
+            class="btn outline small"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </footer>
+    }
+  </div>
+</section>
+
+<dialog #createDialog class="create-dialog" aria-labelledby="create-source-title">
+  <h2 id="create-source-title">Add source</h2>
+  <p class="muted">Web sources discover their processing recipe from the supplied URL.</p>
+  @if (createError()) {
+    <div class="error-box" role="alert">{{ createError() }}</div>
+  }
+  <form (ngSubmit)="create()">
+    <label>Name<input name="name" [(ngModel)]="createForm.name" required /></label>
+    <label>URL<input name="url" [(ngModel)]="createForm.url" type="url" required /></label>
+    <label for="create-source-type">Type</label>
+    <select id="create-source-type" name="type" [(ngModel)]="createForm.type">
+      @for (type of sourceTypes; track type) {
+        <option [value]="type">{{ type }}</option>
+      }
+    </select>
+    <label for="create-source-category">Category</label>
+    <select id="create-source-category" name="category" [(ngModel)]="createForm.category">
+      @for (category of sourceCategories; track category) {
+        <option [value]="category">{{ category.replaceAll('_', ' ') }}</option>
+      }
+    </select>
+    <div class="dialog-actions">
+      <button class="btn outline" type="button" (click)="closeCreate()">Cancel</button
+      ><button class="btn primary" type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Creating…' : 'Create source' }}
+      </button>
+    </div>
+  </form>
+</dialog>

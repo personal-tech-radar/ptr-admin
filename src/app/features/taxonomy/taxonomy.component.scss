@@ -1,0 +1,114 @@
+.taxonomy-page {
+  display: grid;
+  gap: 18px;
+}
+.taxonomy-page .page-header {
+  align-items: center;
+  margin-bottom: 0;
+}
+.domain-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+}
+.domain-tabs a {
+  padding: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+.domain-tabs a.active {
+  color: var(--text);
+  border-color: var(--orange);
+}
+.filters,
+.edit-form {
+  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+.edit-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+}
+.filters label,
+.edit-form label {
+  min-width: 180px;
+  flex: 1;
+  margin: 0;
+}
+.edit-form label {
+  min-width: 0;
+}
+.edit-form h2 {
+  margin-bottom: 0;
+}
+.edit-form .muted {
+  margin-bottom: 4px;
+}
+.edit-form .checkbox {
+  display: flex;
+  justify-self: start;
+  align-items: center;
+  gap: 8px;
+}
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.checkbox input {
+  width: auto;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+}
+td a {
+  color: var(--orange);
+  text-decoration: none;
+}
+.chip {
+  display: inline-block;
+  background: var(--panel-2);
+  border-radius: 12px;
+  padding: 3px 8px;
+  margin: 0 4px 4px 0;
+}
+.create-dialog {
+  width: min(480px, calc(100% - 32px));
+  max-height: 90vh;
+  overflow: auto;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+}
+.create-dialog::backdrop {
+  background: #000a;
+}
+.create-dialog form {
+  display: grid;
+  gap: 14px;
+}
+.create-dialog label {
+  margin: 0;
+}
+.create-dialog .actions {
+  justify-content: flex-end;
+}
+.pagination .btn {
+  margin-left: 6px;
+}
+.stream-row {
+  cursor: pointer;
+}
+.stream-row:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: -2px;
+}

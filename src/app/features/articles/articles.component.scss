@@ -1,0 +1,33 @@
+.articles-page {
+  display: grid;
+  gap: 18px;
+}
+.article-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  padding: 20px;
+  align-items: end;
+}
+.article-filters label {
+  min-width: 0;
+  margin: 0;
+}
+.article-filters button {
+  align-self: end;
+}
+td a {
+  color: var(--orange);
+  text-decoration: none;
+}
+td a:hover {
+  text-decoration: underline;
+}
+.pagination .btn {
+  margin-left: 6px;
+}
+@media (max-width: 700px) {
+  .article-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

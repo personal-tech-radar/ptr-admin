@@ -1,0 +1,186 @@
+<div class="page user-detail">
+  <a routerLink="/users">← Users</a>
+  @if (loading()) {
+    <p class="loading" role="status">Loading user…</p>
+  }
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (user(); as item) {
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">User detail</p>
+        <h1>{{ item.email }}</h1>
+        <p class="muted">{{ item.displayName }}</p>
+      </div>
+      <div class="actions">
+        <a class="btn outline" [attr.href]="digestLink(item.email)">View user digests</a
+        ><button class="btn danger" type="button" [disabled]="pending()" (click)="delete()">
+          Soft-delete user
+        </button>
+      </div>
+    </header>
+    <div class="user-sections">
+      <section class="panel">
+        <h2>Profile</h2>
+        <dl>
+          <div>
+            <dt>Email</dt>
+            <dd>{{ item.email }}</dd>
+          </div>
+          <div>
+            <dt>Name</dt>
+            <dd>{{ item.displayName }}</dd>
+          </div>
+          <div>
+            <dt>Registered</dt>
+            <dd>{{ item.createdAt | date: 'medium' }}</dd>
+          </div>
+          <div>
+            <dt>Email verified</dt>
+            <dd>{{ item.emailVerifiedAt ? (item.emailVerifiedAt | date: 'medium') : 'No' }}</dd>
+          </div>
+          <div>
+            <dt>Onboarding completed</dt>
+            <dd>
+              {{
+                item.onboardingCompletedAt ? (item.onboardingCompletedAt | date: 'medium') : 'No'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>Timezone</dt>
+            <dd>{{ item.timezone ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Level</dt>
+            <dd>{{ item.level ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>GitHub</dt>
+            <dd>{{ item.githubUrl ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Daily / weekly digest</dt>
+            <dd>
+              {{ item.dailyDigestEnabled ? 'On' : 'Off' }} /
+              {{ item.weeklyDigestEnabled ? 'On' : 'Off' }}
+            </dd>
+          </div>
+        </dl>
+      </section>
+      <section class="panel">
+        <h2>Selections</h2>
+        @if (listItem(); as selected) {
+          <dl>
+            <div>
+              <dt>Technologies</dt>
+              <dd>
+                @for (entry of selected.selectedTechnologies; track entry.id) {
+                  <span class="chip">{{ entry.name }}</span>
+                } @empty {
+                  —
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Interests</dt>
+              <dd>
+                @for (entry of selected.selectedInterests; track entry.id) {
+                  <span class="chip">{{ entry.name }}</span>
+                } @empty {
+                  —
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Streams</dt>
+              <dd>
+                @for (entry of selected.selectedStreams; track entry.id) {
+                  <span class="chip">{{ entry.name }}</span>
+                } @empty {
+                  —
+                }
+              </dd>
+            </div>
+          </dl>
+        } @else {
+          <p class="muted">Selections unavailable.</p>
+        }
+      </section>
+      <section class="panel">
+        <h2>Activity</h2>
+        @if (listItem(); as selected) {
+          <p>
+            Last seven days:
+            @if (!selected.periodActivity.active) {
+              Inactive
+            } @else {
+              {{ selected.periodActivity.opens }} opens · {{ selected.periodActivity.saves }} saves
+              · {{ selected.periodActivity.usefulFeedback }} useful ·
+              {{ selected.periodActivity.notUsefulFeedback }} not useful
+            }
+          </p>
+        }
+        <h3>Recent opens</h3>
+        <ul>
+          @for (event of opens(); track event.id) {
+            <li>
+              <a [routerLink]="['/articles', event.articleId]">{{
+                event.article?.title ?? event.articleId
+              }}</a>
+            </li>
+          } @empty {
+            <li>No retained opens.</li>
+          }
+        </ul>
+        <h3>Recent saves</h3>
+        <ul>
+          @for (event of saves(); track event.id) {
+            <li>
+              <a [routerLink]="['/articles', event.articleId]">{{
+                event.article?.title ?? event.articleId
+              }}</a>
+            </li>
+          } @empty {
+            <li>No current saves.</li>
+          }
+        </ul>
+        <h3>Recent feedback</h3>
+        <ul>
+          @for (event of feedback(); track event.id) {
+            <li>
+              <a [routerLink]="['/articles', event.articleId]">{{
+                event.articleTitle ?? event.articleId
+              }}</a>
+              — {{ event.type }}
+            </li>
+          } @empty {
+            <li>No feedback.</li>
+          }
+        </ul>
+      </section>
+      <section class="panel">
+        <h2>Source preferences</h2>
+        @if (preferences().length) {
+          <ul>
+            @for (preference of preferences(); track preference.id) {
+              <li class="source-preference">
+                <a [routerLink]="['/sources', preference.sourceId]">{{ preference.sourceName }}</a>
+                <div class="source-preference-values">
+                  <span>{{ preference.openedCount }} opens</span>
+                  <span>{{ preference.savedCount }} saves</span>
+                  <span>{{ preference.usefulCount }} useful</span>
+                  <span>{{ preference.notUsefulCount }} not useful</span>
+                  <span>Adjustment {{ preference.feedbackAdjustment }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">No source preferences recorded.</p>
+        }
+      </section>
+    </div>
+  }
+</div>

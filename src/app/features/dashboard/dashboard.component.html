@@ -1,66 +1,396 @@
-<section class="page">
+<section class="page dashboard">
   <header class="page-header">
     <div>
-      <p class="eyebrow">Operations</p>
       <h1>Dashboard</h1>
-      <p class="muted">A quick view of the PTR service and operational queues.</p>
     </div>
-    <span class="live-dot">● Live · 20s</span>
+    <div class="dashboard-controls">
+      <label for="dashboard-period">Period</label>
+      <select id="dashboard-period" [ngModel]="period()" (ngModelChange)="setPeriod($event)">
+        @for (option of periods; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+      <button class="btn outline" type="button" (click)="refresh()">Refresh</button>
+      <span class="live-dot">● Every 10s</span>
+    </div>
   </header>
+
   @if (error()) {
     <div class="error-box" role="alert">{{ error() }}</div>
   }
-  <div class="stat-grid">
-    <article class="stat-card">
-      <span class="eyebrow">Users</span><strong>{{ stats().users || '—' }}</strong
-      ><span class="muted">Registered normal users</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">Sources</span><strong>{{ stats().sources || '—' }}</strong
-      ><span class="muted">Configured sources</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">Articles</span><strong>{{ stats().articles || '—' }}</strong
-      ><span class="muted">In the article pipeline</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">Digests sent</span><strong>{{ stats().digestsSent || '—' }}</strong
-      ><span class="muted">Stored sent digests</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">Failed jobs</span><strong>{{ stats().failedJobs || '—' }}</strong
-      ><span class="muted">Available for safe cancellation</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">Application</span><strong>{{ health()?.appName || 'Loading…' }}</strong
-      ><span class="muted">{{ health()?.environment || 'Checking API' }}</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">API status</span
-      ><strong class="status-good">{{ health() ? 'Healthy' : 'Checking…' }}</strong
-      ><span class="muted">{{
-        lastUpdated() ? 'Updated ' + lastUpdated()!.toLocaleTimeString() : 'Polling health endpoint'
-      }}</span>
-    </article>
-    <article class="stat-card">
-      <span class="eyebrow">Uptime</span><strong>{{ health() ? uptime() : '—' }}</strong
-      ><span class="muted">Since last service start</span>
-    </article>
-  </div>
-  <section class="panel">
-    <div class="section-heading">
-      <div>
-        <h2>Queue visibility</h2>
-        <p class="muted">The current API exposes failed jobs and safe cancellation only.</p>
+  @if (loading()) {
+    <div class="loading" role="status">Loading dashboard…</div>
+  } @else if (overview(); as data) {
+    <p class="muted period-note">
+      {{ data.period.from | date: 'medium' : 'UTC' }}–{{ data.period.to | date: 'medium' : 'UTC' }}
+      UTC
+      @if (lastUpdated(); as updated) {
+        · Last refreshed {{ updated | date: 'mediumTime' }}
+      }
+    </p>
+
+    <section aria-label="User statistics">
+      <h2 class="row-title">Accounts</h2>
+      <p class="muted row-description">Current registered-user milestones.</p>
+      <div class="metric-grid">
+        <a class="metric" routerLink="/users" title="All retained registered users."
+          ><span>Registered</span><strong>{{ data.users.registered }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/users"
+          [queryParams]="{ verified: true }"
+          title="Users with a verified email address."
+          ><span>Verified</span><strong>{{ data.users.verified }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/users"
+          [queryParams]="{ onboardingCompleted: true }"
+          title="Users who completed onboarding."
+          ><span>Onboarding completed</span><strong>{{ data.users.onboardingCompleted }}</strong></a
+        >
       </div>
-      <a class="text-link" routerLink="/jobs">Review failed jobs →</a>
-    </div>
-    <div class="notice">
-      <span class="notice-icon">i</span
-      ><span
-        >Waiting, active, delayed and completed queue counts are not available in the current
-        administrator API.</span
-      >
-    </div>
-  </section>
+      <h2 class="row-title">Active users</h2>
+      <p class="muted row-description">Users with recorded activity in the stated window.</p>
+      <div class="metric-grid">
+        <a
+          class="metric"
+          routerLink="/users"
+          title="Distinct active users since the current UTC midnight."
+          [queryParams]="{ activityFrom: data.period.dauFrom, activityTo: data.period.to }"
+          ><span>DAU</span><strong>{{ data.users.dau }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/users"
+          title="Distinct active users in the rolling seven-day window."
+          [queryParams]="{ activityFrom: data.period.wauFrom, activityTo: data.period.to }"
+          ><span>WAU</span><strong>{{ data.users.wau }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/users"
+          title="Distinct active users in the rolling 30-day window."
+          [queryParams]="{ activityFrom: data.period.mauFrom, activityTo: data.period.to }"
+          ><span>MAU</span><strong>{{ data.users.mau }}</strong></a
+        >
+      </div>
+    </section>
+
+    <section aria-label="Content statistics">
+      <h2 class="row-title">Sources</h2>
+      <p class="muted row-description">
+        Current source inventory and sources added in the selected period.
+      </p>
+      <div class="metric-grid">
+        <a class="metric" routerLink="/sources" title="All retained sources."
+          ><span>Total sources</span><strong>{{ data.content.totalSources }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          title="Sources created in the selected period."
+          [queryParams]="{
+            createdFrom: data.period.from,
+            createdTo: data.period.to,
+            period: period(),
+          }"
+          ><span>Sources added</span><strong>{{ data.content.sourcesCreated }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{ status: 'active' }"
+          title="Sources currently in the active lifecycle state."
+          ><span>Active sources</span><strong>{{ data.content.sourceLifecycle.active }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{ status: 'degraded' }"
+          title="Sources currently in the degraded lifecycle state."
+          ><span>Degraded sources</span
+          ><strong>{{ data.content.sourceLifecycle.degraded }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{ status: 'disabled' }"
+          title="Sources currently disabled."
+          ><span>Disabled sources</span
+          ><strong>{{ data.content.sourceLifecycle.disabled }}</strong></a
+        >
+      </div>
+
+      <h2 class="row-title">Source candidates</h2>
+      <p class="muted row-description">Proposed sources by current onboarding status.</p>
+      <div class="metric-grid">
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{ tab: 'candidates' }"
+          title="All retained source candidates."
+          ><span>All candidates</span><strong>{{ data.content.sourceCandidates.total }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{
+            tab: 'candidates',
+            status: 'pending',
+            createdFrom: data.period.from,
+            createdTo: data.period.to,
+          }"
+          title="Candidates created in the selected period that are still pending."
+          ><span>Pending</span><strong>{{ data.content.sourceCandidatesPeriod.pending }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{
+            tab: 'candidates',
+            status: 'active',
+            createdFrom: data.period.from,
+            createdTo: data.period.to,
+          }"
+          title="Candidates created in the selected period that became active."
+          ><span>Active</span><strong>{{ data.content.sourceCandidatesPeriod.active }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/sources"
+          [queryParams]="{
+            tab: 'candidates',
+            status: 'rejected',
+            createdFrom: data.period.from,
+            createdTo: data.period.to,
+          }"
+          title="Candidates created in the selected period that were rejected."
+          ><span>Rejected</span
+          ><strong>{{ data.content.sourceCandidatesPeriod.rejected }}</strong></a
+        >
+      </div>
+
+      <h2 class="row-title">Source types</h2>
+      <p class="muted row-description">
+        Lifecycle, article volume, and recorded engagement by source type.
+      </p>
+      <div class="source-types">
+        @for (sourceGroup of sourceGroupOrder; track sourceGroup) {
+          @for (group of data.sourceTypes; track group.group) {
+            @if (group.group === sourceGroup) {
+              <section class="panel source-type" [title]="sourceGroupDescriptions[sourceGroup]">
+                <h3>{{ sourceGroupLabels[sourceGroup] }}</h3>
+                <div class="source-type-metrics">
+                  <a
+                    class="metric"
+                    routerLink="/sources"
+                    [queryParams]="{ sourceGroup: group.group }"
+                    title="All retained sources in this type."
+                    ><span>Total</span><strong>{{ group.total }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/sources"
+                    [queryParams]="{
+                      sourceGroup: group.group,
+                      createdFrom: data.period.from,
+                      createdTo: data.period.to,
+                    }"
+                    title="Sources of this type added in the selected period."
+                    ><span>Added</span><strong>{{ group.created }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/sources"
+                    [queryParams]="{ sourceGroup: group.group, status: 'active' }"
+                    title="Active sources of this type."
+                    ><span>Active</span><strong>{{ group.lifecycle.active }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/sources"
+                    [queryParams]="{ sourceGroup: group.group, status: 'degraded' }"
+                    title="Degraded sources of this type."
+                    ><span>Degraded</span><strong>{{ group.lifecycle.degraded }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/sources"
+                    [queryParams]="{ sourceGroup: group.group, status: 'disabled' }"
+                    title="Disabled sources of this type."
+                    ><span>Disabled</span><strong>{{ group.lifecycle.disabled }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/articles"
+                    [queryParams]="{
+                      sourceGroup: group.group,
+                      receivedFrom: data.period.from,
+                      receivedTo: data.period.to,
+                    }"
+                    title="Articles received from this type in the selected period."
+                    ><span>Received</span><strong>{{ group.receivedArticles }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/articles"
+                    [queryParams]="{ sourceGroup: group.group }"
+                    title="All retained articles from this type."
+                    ><span>All articles</span><strong>{{ group.totalArticles }}</strong></a
+                  >
+                  <a
+                    class="metric"
+                    routerLink="/sources"
+                    [queryParams]="{ sourceGroup: group.group }"
+                    title="Total persisted user interaction signals for this type."
+                    ><span>Engagement</span><strong>{{ group.signals.total }}</strong></a
+                  >
+                </div>
+              </section>
+            }
+          }
+        }
+      </div>
+
+      <h2 class="row-title">Articles</h2>
+      <p class="muted row-description">
+        Current states of articles received in the selected period.
+      </p>
+      <div class="metric-grid">
+        <a
+          class="metric"
+          routerLink="/articles"
+          title="All articles received in the selected period, regardless of current status."
+          [queryParams]="{ receivedFrom: data.period.from, receivedTo: data.period.to }"
+          ><span>Received articles</span><strong>{{ data.content.receivedArticles }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/articles"
+          title="Received articles currently awaiting analysis."
+          [queryParams]="{
+            status: 'pending_analysis',
+            receivedFrom: data.period.from,
+            receivedTo: data.period.to,
+          }"
+          ><span>Pending analysis</span
+          ><strong>{{ data.content.articlesPeriod.pending_analysis }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/articles"
+          title="Received articles currently analyzed."
+          [queryParams]="{
+            status: 'analyzed',
+            receivedFrom: data.period.from,
+            receivedTo: data.period.to,
+          }"
+          ><span>Analyzed</span><strong>{{ data.content.articlesPeriod.analyzed }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/articles"
+          title="Received articles currently in a failed state."
+          [queryParams]="{
+            status: 'failed',
+            receivedFrom: data.period.from,
+            receivedTo: data.period.to,
+          }"
+          ><span>Failed articles</span><strong>{{ data.content.articlesPeriod.failed }}</strong></a
+        >
+      </div>
+    </section>
+
+    <section aria-labelledby="digests-heading">
+      <h2 id="digests-heading">Digests</h2>
+      <p class="muted section-description">
+        Current delivery outcomes, with period and all-time views.
+      </p>
+      <div class="metric-grid">
+        <a
+          class="metric"
+          routerLink="/digests"
+          title="Digests currently sent within the selected period."
+          [queryParams]="{ status: 'sent', sentFrom: data.period.from, sentTo: data.period.to }"
+          ><span>Sent in period</span><strong>{{ data.digests.period.sent }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/digests"
+          title="Digests currently failed and updated within the selected period."
+          [queryParams]="{
+            status: 'failed',
+            updatedFrom: data.period.from,
+            updatedTo: data.period.to,
+          }"
+          ><span>Failed in period</span><strong>{{ data.digests.period.failed }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/digests"
+          [queryParams]="{ status: 'sent' }"
+          title="All retained sent digests."
+          ><span>Sent all time</span><strong>{{ data.digests.allTime.sent }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/digests"
+          [queryParams]="{ status: 'failed' }"
+          title="All retained failed digests."
+          ><span>Failed all time</span><strong>{{ data.digests.allTime.failed }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/digests"
+          title="Draft digests created in the selected period."
+          [queryParams]="{
+            status: 'draft',
+            createdFrom: data.period.from,
+            createdTo: data.period.to,
+          }"
+          ><span>Draft</span><strong>{{ data.digests.period.draft }}</strong></a
+        >
+        <a
+          class="metric"
+          routerLink="/digests"
+          title="Digests skipped because they had no articles, created in the selected period."
+          [queryParams]="{
+            status: 'skipped_empty',
+            createdFrom: data.period.from,
+            createdTo: data.period.to,
+          }"
+          ><span>Skipped empty</span><strong>{{ data.digests.period.skipped_empty }}</strong></a
+        >
+      </div>
+    </section>
+
+    <section aria-labelledby="backend-heading">
+      <h2 id="backend-heading">Backend status</h2>
+      <div class="panel backend-status">
+        <div title="Name reported by the backend application.">
+          <span>Application</span><strong>{{ data.backend.appName }}</strong>
+        </div>
+        <div title="Environment reported by the backend application.">
+          <span>Environment</span><strong>{{ data.backend.environment }}</strong>
+        </div>
+        <div title="Healthy means the application served the overview request.">
+          <span>Status</span
+          ><strong>{{ data.backend.status === 'ok' ? 'Healthy' : 'Unavailable' }}</strong>
+        </div>
+        <div title="Elapsed time since the backend application started.">
+          <span>Uptime</span><strong>{{ uptime(data.backend.uptime) }}</strong>
+        </div>
+        <div title="Most recent successful source fetch stored by the backend.">
+          <span>Last successful update</span
+          ><strong>{{
+            data.backend.lastSuccessfulUpdateAt
+              ? (data.backend.lastSuccessfulUpdateAt | date: 'medium')
+              : 'No data'
+          }}</strong>
+        </div>
+      </div>
+    </section>
+  }
 </section>

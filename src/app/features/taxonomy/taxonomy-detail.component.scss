@@ -1,0 +1,99 @@
+.taxonomy-detail {
+  display: grid;
+  gap: 18px;
+}
+.taxonomy-detail > a {
+  color: var(--orange);
+}
+.taxonomy-detail .page-header {
+  margin: 0;
+}
+.taxonomy-detail section,
+.taxonomy-detail form {
+  padding: 20px;
+}
+.taxonomy-detail .topic-edit label,
+.taxonomy-detail .merge-form label {
+  max-width: 580px;
+}
+.topic-details dl {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+.topic-details dl > div {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+}
+.topic-details dt {
+  color: var(--muted);
+}
+.topic-details dd {
+  margin: 0;
+}
+.topic-details .chip {
+  display: inline-block;
+  padding: 3px 8px;
+  margin: 0 4px 4px 0;
+  background: var(--panel-2);
+  border-radius: 12px;
+}
+.topic-coverage > p {
+  max-width: 850px;
+}
+.coverage-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+.coverage-summary > div {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.coverage-summary span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.coverage-summary strong {
+  font-size: 22px;
+}
+.stream-coverage caption {
+  color: var(--muted);
+  text-align: left;
+  padding: 0 0 10px;
+}
+.stream-coverage td a {
+  color: var(--text);
+  text-decoration-color: var(--orange);
+}
+.discover-dialog {
+  width: min(460px, calc(100% - 32px));
+  max-height: 90vh;
+  overflow: auto;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 24px;
+}
+.discover-dialog::backdrop {
+  background: #000a;
+}
+.discover-dialog .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+@media (max-width: 700px) {
+  .topic-details dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}

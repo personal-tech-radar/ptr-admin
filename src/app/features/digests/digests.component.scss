@@ -1,0 +1,41 @@
+.digests-page {
+  display: grid;
+  gap: 18px;
+}
+.filters,
+.preview-panel {
+  padding: 20px;
+}
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+.filters label {
+  margin: 0;
+}
+.filters button {
+  align-self: end;
+}
+.preview-panel form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+}
+.preview-panel label {
+  min-width: 200px;
+  margin: 0;
+}
+td a {
+  color: var(--orange);
+}
+.preview {
+  color: var(--orange);
+  background: var(--orange-soft);
+}
+.pagination .btn {
+  margin-left: 6px;
+}

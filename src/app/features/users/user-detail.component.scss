@@ -1,0 +1,79 @@
+.user-detail {
+  display: grid;
+  gap: 18px;
+}
+.user-detail > a,
+.user-detail a:not(.btn) {
+  color: var(--orange);
+}
+.user-detail .page-header {
+  margin: 0;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.user-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr));
+  gap: 16px;
+}
+.user-sections section {
+  min-width: 0;
+  padding: 20px;
+}
+.user-sections dl {
+  display: grid;
+  gap: 12px;
+}
+.user-sections dl div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 10px;
+}
+.user-sections dt {
+  color: var(--muted);
+}
+.user-sections dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.user-sections h3 {
+  font-size: 14px;
+  margin-top: 20px;
+}
+.user-sections ul {
+  padding-left: 20px;
+}
+.user-sections li {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.user-sections li.source-preference {
+  margin: 10px 0;
+}
+.source-preference > a {
+  display: block;
+  margin-bottom: 3px;
+}
+.source-preference-values {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.chip {
+  display: inline-block;
+  padding: 3px 8px;
+  margin: 0 4px 4px 0;
+  background: var(--panel-2);
+  border-radius: 12px;
+}
+@media (max-width: 700px) {
+  .user-sections dl div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+}

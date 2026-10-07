@@ -1,0 +1,157 @@
+<div class="page articles-page">
+  <header class="page-header">
+    <div>
+      <h1>Articles</h1>
+    </div>
+  </header>
+  <form class="article-filters panel" (ngSubmit)="applyFilters()">
+    <label>Search title or URL<input name="q" [(ngModel)]="filters['q']" /></label>
+    <label
+      >Status<select name="status" [(ngModel)]="filters['status']">
+        <option value="">All statuses</option>
+        <option value="new">New</option>
+        <option value="duplicate">Duplicate</option>
+        <option value="pending_analysis">Pending analysis</option>
+        <option value="analyzed">Analyzed</option>
+        <option value="rejected">Rejected</option>
+        <option value="failed">Failed</option>
+        <option value="skipped">Skipped</option>
+      </select></label
+    >
+    <label
+      >Source<select name="sourceId" [(ngModel)]="filters['sourceId']">
+        <option value="">All sources</option>
+        @for (source of sources(); track source.id) {
+          <option [value]="source.id">{{ source.name }}</option>
+        }
+      </select></label
+    >
+    <label
+      >Source type<select name="sourceType" [(ngModel)]="filters['sourceType']">
+        <option value="">All types</option>
+        <option value="rss">RSS</option>
+        <option value="atom">Atom</option>
+        <option value="web">Web</option>
+        <option value="github_release">GitHub Release</option>
+      </select></label
+    >
+    <label
+      >Technology or interest<select
+        name="technologyInterestId"
+        [(ngModel)]="filters['technologyInterestId']"
+      >
+        <option value="">All topics</option>
+        @for (item of taxonomy(); track item.id) {
+          <option [value]="item.id">{{ item.name }}</option>
+        }
+      </select></label
+    >
+    <label
+      >Stream<select name="streamId" [(ngModel)]="filters['streamId']">
+        <option value="">All streams</option>
+        @for (stream of streams(); track stream.id) {
+          <option [value]="stream.id">{{ stream.name }}</option>
+        }
+      </select></label
+    >
+    <label
+      >Received from (UTC)<input
+        name="receivedFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['receivedFrom']"
+    /></label>
+    <label
+      >Received to (UTC)<input
+        name="receivedTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['receivedTo']"
+    /></label>
+    <label
+      >Published from (UTC)<input
+        name="publishedFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['publishedFrom']"
+    /></label>
+    <label
+      >Published to (UTC)<input
+        name="publishedTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['publishedTo']"
+    /></label>
+    <button class="btn primary" type="submit">Apply filters</button>
+  </form>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (filterOptionsError()) {
+    <p class="error-box" role="alert">{{ filterOptionsError() }}</p>
+  }
+  <section class="panel" aria-label="Article list">
+    @if (loading()) {
+      <p class="loading" role="status">Loading articles…</p>
+    } @else if (!articles().length) {
+      <p class="empty">No articles found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Title</th>
+              <th>Source</th>
+              <th>Primary stream</th>
+              <th>Received</th>
+              <th>Published</th>
+              <th>Quality / final score</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (article of articles(); track article.id) {
+              <tr
+                [appTableRowLink]="['/articles', article.id]"
+                [appTableRowLabel]="'Open article ' + article.title"
+              >
+                <td>
+                  <span
+                    class="badge"
+                    [class.analyzed]="article.status === 'analyzed'"
+                    [class.failed]="article.status === 'failed'"
+                    >{{ article.status }}</span
+                  >
+                </td>
+                <td>
+                  <a [routerLink]="['/articles', article.id]">{{ article.title }}</a>
+                </td>
+                <td>{{ article.source?.name ?? 'Unknown source' }}</td>
+                <td>{{ article.primaryStream?.name ?? '—' }}</td>
+                <td>{{ article.createdAt | date: 'medium' }}</td>
+                <td>{{ article.publishedAt ? (article.publishedAt | date: 'medium') : '—' }}</td>
+                <td>{{ article.qualityScore ?? '—' }} / {{ article.finalScore ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span>{{ total() }} articles · Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous</button
+          ><button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</div>

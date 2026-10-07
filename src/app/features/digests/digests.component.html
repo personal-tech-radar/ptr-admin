@@ -1,0 +1,189 @@
+<div class="page digests-page">
+  <header class="page-header">
+    <div>
+      <h1>Digests</h1>
+    </div>
+  </header>
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  <form class="filters panel" (ngSubmit)="applyFilters()">
+    <label>Recipient email<input name="email" type="email" [(ngModel)]="filters['email']" /></label>
+    <label
+      >Status<select name="status" [(ngModel)]="filters['status']">
+        <option value="">All statuses</option>
+        <option value="draft">Draft</option>
+        <option value="sent">Sent</option>
+        <option value="failed">Failed</option>
+        <option value="skipped_empty">Skipped empty</option>
+      </select></label
+    >
+    <label
+      >Type<select name="type" [(ngModel)]="filters['type']">
+        <option value="">Both types</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+      </select></label
+    >
+    <label
+      >Delivery mode<select name="deliveryMode" [(ngModel)]="filters['deliveryMode']">
+        <option value="">Both modes</option>
+        <option value="scheduled">Scheduled</option>
+        <option value="admin_preview">Administrator preview</option>
+      </select></label
+    >
+    <label
+      >Created from (UTC)<input
+        name="createdFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['createdFrom']" /></label
+    ><label
+      >Created to (UTC)<input
+        name="createdTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['createdTo']"
+    /></label>
+    <label
+      >Sent from (UTC)<input
+        name="sentFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['sentFrom']" /></label
+    ><label
+      >Sent to (UTC)<input
+        name="sentTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['sentTo']"
+    /></label>
+    <label
+      >Updated from (UTC)<input
+        name="updatedFrom"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['updatedFrom']" /></label
+    ><label
+      >Updated to (UTC)<input
+        name="updatedTo"
+        placeholder="YYYY-MM-DD or ISO time"
+        [(ngModel)]="filters['updatedTo']"
+    /></label>
+    <button class="btn primary" type="submit">Apply filters</button>
+  </form>
+  <section class="panel" aria-label="Digest list">
+    @if (loading()) {
+      <p class="loading" role="status">Loading digests…</p>
+    } @else if (!digests().length) {
+      <p class="empty">No digests found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Recipient</th>
+              <th>Type</th>
+              <th>Delivery mode</th>
+              <th>Article count</th>
+              <th>Period</th>
+              <th>Created</th>
+              <th>Sent</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (digest of digests(); track digest.id) {
+              <tr
+                [appTableRowLink]="['/digests', digest.id]"
+                [appTableRowLabel]="
+                  'Open digest for ' +
+                  (digest.actualRecipientEmail || digest.userEmail || 'unknown recipient')
+                "
+              >
+                <td>
+                  <span
+                    class="badge"
+                    [class.sent]="digest.status === 'sent'"
+                    [class.failed]="digest.status === 'failed'"
+                    >{{ digest.status }}</span
+                  >
+                </td>
+                <td>
+                  <a [routerLink]="['/digests', digest.id]">{{
+                    digest.actualRecipientEmail || digest.userEmail || 'Unknown recipient'
+                  }}</a>
+                </td>
+                <td>{{ digest.type }}</td>
+                <td>
+                  @if (digest.deliveryMode === 'admin_preview') {
+                    <span class="badge preview">Administrator preview</span>
+                  } @else {
+                    Scheduled
+                  }
+                </td>
+                <td>{{ digest.articleCount }}</td>
+                <td>
+                  {{ digest.periodStart | date: 'shortDate' }} –
+                  {{ digest.periodEnd | date: 'shortDate' }}
+                </td>
+                <td>{{ digest.createdAt | date: 'medium' }}</td>
+                <td>{{ digest.sentAt ? (digest.sentAt | date: 'medium') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    @if (!loading() && digests().length) {
+      <div class="pagination">
+        <span>{{ total() }} digests · Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous</button
+          ><button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+  <section class="panel preview-panel">
+    <h2>Create administrator preview</h2>
+    <p class="muted">
+      Build from a selected user’s profile. Delivery goes only to your administrator email, not the
+      selected user.
+    </p>
+    <form (ngSubmit)="findUser()">
+      <label
+        >Find user by email<input name="userSearch" type="email" [(ngModel)]="userSearch" /></label
+      ><button class="btn outline" type="submit" [disabled]="pending()">Find user</button>
+    </form>
+    @if (users().length) {
+      <form (ngSubmit)="createPreview()">
+        <label
+          >Selected user<select name="previewUserId" [(ngModel)]="previewUserId">
+            <option value="">Choose user</option>
+            @for (user of users(); track user.id) {
+              <option [value]="user.id">{{ user.email }}</option>
+            }
+          </select></label
+        ><label
+          >Digest type<select name="previewType" [(ngModel)]="previewType">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select></label
+        ><button class="btn primary" type="submit" [disabled]="pending() || !previewUserId">
+          Create preview for administrator
+        </button>
+      </form>
+    } @else if (userSearch && !pending()) {
+      <p class="muted">Search for a user to create a preview.</p>
+    }
+  </section>
+</div>

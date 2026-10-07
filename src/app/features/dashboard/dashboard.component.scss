@@ -1,0 +1,106 @@
+.dashboard {
+  display: grid;
+  gap: 28px;
+}
+.dashboard .page-header {
+  margin-bottom: 0;
+}
+.dashboard-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dashboard-controls label {
+  margin: 0;
+}
+.dashboard-controls select {
+  width: auto;
+}
+.period-note {
+  margin: -16px 0 0;
+  font-size: 12px;
+}
+.dashboard section {
+  min-width: 0;
+}
+.dashboard .row-title {
+  margin: 22px 0 7px;
+  font-size: 19px;
+}
+.source-type h3 {
+  margin: 0 0 12px;
+  font-size: 19px;
+}
+.section-description,
+.row-description {
+  margin: 0;
+  font-size: 13px;
+}
+.row-description {
+  margin-top: 4px;
+}
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.metric {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.metric span,
+.backend-status span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.metric strong {
+  font-size: 24px;
+}
+.metric:hover,
+.metric:focus-visible {
+  border-color: var(--orange);
+}
+.source-type {
+  padding: 16px;
+  margin-top: 12px;
+}
+.source-type-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.source-type .metric {
+  min-width: 0;
+  gap: 4px;
+  padding: 8px;
+}
+.source-type .metric strong {
+  font-size: 16px;
+}
+.source-type .metric:hover,
+.source-type .metric:focus-visible {
+  border-color: var(--green);
+}
+.source-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.backend-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 18px;
+}
+.backend-status div {
+  display: grid;
+  gap: 8px;
+}

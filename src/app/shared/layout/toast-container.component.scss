@@ -1,0 +1,30 @@
+.toast-container {
+  position: fixed;
+  z-index: 1000;
+  inset: 16px 16px auto auto;
+  display: grid;
+  gap: 8px;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--green, #47b881);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #0005;
+  pointer-events: auto;
+}
+.toast button {
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 20px;
+}

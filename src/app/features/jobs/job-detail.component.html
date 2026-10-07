@@ -1,0 +1,70 @@
+<div class="page job-detail">
+  <a routerLink="/jobs">← Queues</a>
+  @if (loading()) {
+    <p class="loading" role="status">Loading job…</p>
+  }
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+  @if (job(); as item) {
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">{{ item.queue }}</p>
+        <h1>{{ item.type }}</h1>
+        <p class="muted">Job {{ item.id }} · {{ item.state }}</p>
+      </div>
+    </header>
+    <section class="panel">
+      <h2>Job details</h2>
+      <dl>
+        <div>
+          <dt>Queue</dt>
+          <dd>{{ item.queue }}</dd>
+        </div>
+        <div>
+          <dt>Job type</dt>
+          <dd>{{ item.type }}</dd>
+        </div>
+        <div>
+          <dt>State</dt>
+          <dd>{{ item.state }}</dd>
+        </div>
+        <div>
+          <dt>Related entity</dt>
+          <dd>
+            @if (item.reference; as reference) {
+              <a [attr.href]="referencePath(reference)">{{ reference.type }} {{ reference.id }}</a>
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Attempts</dt>
+          <dd>{{ item.attemptsMade }} / {{ item.attempts }}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{{ item.timestamp | date: 'medium' }}</dd>
+        </div>
+        <div>
+          <dt>Started</dt>
+          <dd>{{ item.processedOn ? (item.processedOn | date: 'medium') : '—' }}</dd>
+        </div>
+        <div>
+          <dt>Finished</dt>
+          <dd>{{ item.finishedOn ? (item.finishedOn | date: 'medium') : '—' }}</dd>
+        </div>
+        <div>
+          <dt>Error</dt>
+          <dd>{{ item.failedReason ?? '—' }}</dd>
+        </div>
+      </dl>
+    </section>
+    @if (cancellableStates.includes(item.state)) {
+      <button class="btn danger" type="button" [disabled]="pending()" (click)="cancel()">
+        Cancel pending job
+      </button>
+    }
+  }
+</div>

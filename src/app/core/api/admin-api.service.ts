@@ -1,6 +1,19 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { APP_CONFIG } from '../config/app-config';
+import { AdminPeriod, DashboardOverview } from './admin-dashboard.models';
+import { ArticleDetail, ArticlePage } from './admin-article.models';
+import { CreateTaxonomyResponse, TaxonomyItem, TaxonomyPage } from './admin-taxonomy.models';
+import { AdminJob, JobPage, QueueSummary } from './admin-job.models';
+import { AdminDigest, DigestDetail, DigestPage } from './admin-digest.models';
+import { AdminUser, SourcePreference, UserEvent, UserPage } from './admin-user.models';
+import {
+  AdminSource,
+  CreateSource,
+  SourceCandidate,
+  SourceDetail,
+  SourcePage,
+} from './admin-source.models';
 
 export interface Page<T> {
   data: T[];
@@ -12,54 +25,6 @@ export interface AdministratorPage {
   page: number;
   limit: number;
 }
-export interface Health {
-  appName: string;
-  environment: string;
-  uptime: number;
-}
-export interface Article {
-  id: string;
-  sourceId: string;
-  title: string;
-  url: string;
-  status: string;
-  publishedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: unknown;
-}
-export interface Source {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-  category: string;
-  enabled: boolean;
-  status: string;
-  consecutiveFailures: number;
-  processedArticleCount: number;
-  lastError?: string;
-  [key: string]: unknown;
-}
-export interface Candidate {
-  id: string;
-  normalizedUrl: string;
-  domain: string;
-  status: string;
-  detectedType?: string;
-  rejectionCode?: string;
-  activatedSourceId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-export interface Taxonomy {
-  id: string;
-  kind: string;
-  name: string;
-  aliases: string[];
-  createdAt: string;
-  updatedAt: string;
-}
 export interface Stream {
   id: string;
   key: string;
@@ -67,42 +32,6 @@ export interface Stream {
   description?: string;
   sortOrder: number;
   enabled: boolean;
-}
-export interface Coverage {
-  technologyInterestId: string;
-  name: string;
-  kind: string;
-  streamId: string;
-  streamKey: string;
-  activeSources: number;
-  degradedSources: number;
-  disabledSources: number;
-}
-export interface User {
-  id: string;
-  email: string;
-  displayName: string;
-  timezone?: string;
-  level?: string;
-  dailyDigestEnabled: boolean;
-  weeklyDigestEnabled: boolean;
-  emailVerifiedAt?: string;
-  onboardingCompletedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-export interface Digest {
-  id: string;
-  userEmail?: string;
-  type: string;
-  periodStart: string;
-  periodEnd: string;
-  subject: string;
-  status: string;
-  deliveryMode: string;
-  createdAt: string;
-  items?: unknown[];
-  streamPages?: unknown[];
 }
 export interface Administrator {
   id: string;
@@ -131,14 +60,16 @@ export class AdminApiService {
     });
     return p;
   }
-  health() {
-    return this.http.get<Health>(this.url('/health'));
+  dashboard(period: AdminPeriod) {
+    return this.http.get<DashboardOverview>(this.url('/admin/dashboard/overview'), {
+      params: this.params({ period }),
+    });
   }
   articles(q: Record<string, unknown>) {
-    return this.http.get<Page<Article>>(this.url('/admin/articles'), { params: this.params(q) });
+    return this.http.get<ArticlePage>(this.url('/admin/articles'), { params: this.params(q) });
   }
   article(id: string) {
-    return this.http.get<Article>(this.url(`/admin/articles/${id}`));
+    return this.http.get<ArticleDetail>(this.url(`/admin/articles/${id}`));
   }
   retryArticle(id: string) {
     return this.http.post(this.url(`/admin/articles/${id}/retry-analysis`), {});
@@ -147,16 +78,18 @@ export class AdminApiService {
     return this.http.delete(this.url(`/admin/articles/${id}`));
   }
   sources(q: Record<string, unknown>) {
-    return this.http.get<Page<Source>>(this.url('/admin/sources'), { params: this.params(q) });
+    return this.http.get<SourcePage>(this.url('/admin/sources'), { params: this.params(q) });
   }
-  source(id: string) {
-    return this.http.get<Source>(this.url(`/admin/sources/${id}`));
+  source(id: string, period: AdminPeriod = '24h') {
+    return this.http.get<SourceDetail>(this.url(`/admin/sources/${id}`), {
+      params: this.params({ period }),
+    });
   }
-  createSource(body: unknown) {
-    return this.http.post<Source>(this.url('/admin/sources'), body);
+  createSource(body: CreateSource) {
+    return this.http.post<AdminSource>(this.url('/admin/sources'), body);
   }
-  updateSource(id: string, body: unknown) {
-    return this.http.patch<Source>(this.url(`/admin/sources/${id}`), body);
+  deleteSource(id: string) {
+    return this.http.delete(this.url(`/admin/sources/${id}`));
   }
   sourceAction(
     id: string,
@@ -165,66 +98,90 @@ export class AdminApiService {
     return this.http.post(this.url(`/admin/sources/${id}/${action}`), {});
   }
   candidates(q: Record<string, unknown>) {
-    return this.http.get<Page<Candidate>>(this.url('/admin/source-candidates'), {
+    return this.http.get<Page<SourceCandidate>>(this.url('/admin/source-candidates'), {
       params: this.params(q),
     });
   }
   candidate(id: string) {
-    return this.http.get<Candidate>(this.url(`/admin/source-candidates/${id}`));
+    return this.http.get<SourceCandidate>(this.url(`/admin/source-candidates/${id}`));
   }
   retryCandidate(id: string) {
     return this.http.post(this.url(`/admin/source-candidates/${id}/retry`), {});
   }
   taxonomy(q: Record<string, unknown>) {
-    return this.http.get<Page<Taxonomy>>(this.url('/admin/technology-interests'), {
+    return this.http.get<TaxonomyPage>(this.url('/admin/technology-interests'), {
       params: this.params(q),
     });
   }
-  updateTaxonomy(id: string, body: unknown) {
-    return this.http.patch<Taxonomy>(this.url(`/admin/technology-interests/${id}`), body);
+  createTaxonomy(body: { name: string; kind: 'technology' | 'interest' }) {
+    return this.http.post<CreateTaxonomyResponse>(this.url('/admin/technology-interests'), body);
   }
-  mergeTaxonomy(body: unknown) {
+  updateTaxonomy(id: string, body: { name?: string; aliases?: string[] }) {
+    return this.http.patch<TaxonomyItem>(this.url(`/admin/technology-interests/${id}`), body);
+  }
+  mergeTaxonomy(body: { winnerId: string; loserId: string }) {
     return this.http.post(this.url('/admin/technology-interests/merge'), body);
   }
   discoverSources(id: string) {
     return this.http.post(this.url(`/admin/technology-interests/${id}/discover-sources`), {});
   }
   streams() {
-    return this.http.get<Stream[]>(this.url('/admin/content-streams'));
+    return this.http.get<Stream[]>(this.url('/admin/content-streams'), {
+      params: this.params({ includeDisabled: true }),
+    });
   }
   updateStream(id: string, body: unknown) {
     return this.http.patch<Stream>(this.url(`/admin/content-streams/${id}`), body);
   }
-  coverage(q: Record<string, unknown>) {
-    return this.http.get<Page<Coverage>>(this.url('/admin/source-coverage'), {
+  users(q: Record<string, unknown>) {
+    return this.http.get<UserPage>(this.url('/admin/users'), { params: this.params(q) });
+  }
+  user(id: string) {
+    return this.http.get<AdminUser>(this.url(`/admin/users/${id}`));
+  }
+  userSourcePreferences(q: Record<string, unknown>) {
+    return this.http.get<Page<SourcePreference>>(this.url('/admin/user-source-preferences'), {
       params: this.params(q),
     });
   }
-  users(q: Record<string, unknown>) {
-    return this.http.get<Page<User>>(this.url('/admin/users'), { params: this.params(q) });
+  userOpens(q: Record<string, unknown>) {
+    return this.http.get<Page<UserEvent>>(this.url('/admin/opens'), { params: this.params(q) });
   }
-  user(id: string) {
-    return this.http.get<User>(this.url(`/admin/users/${id}`));
+  userSaves(q: Record<string, unknown>) {
+    return this.http.get<Page<UserEvent>>(this.url('/admin/saved-articles'), {
+      params: this.params(q),
+    });
+  }
+  userFeedback(q: Record<string, unknown>) {
+    return this.http.get<Page<UserEvent>>(this.url('/admin/article-feedback'), {
+      params: this.params(q),
+    });
   }
   deleteUser(id: string) {
     return this.http.delete(this.url(`/admin/users/${id}`));
   }
   digests(q: Record<string, unknown>) {
-    return this.http.get<Page<Digest>>(this.url('/admin/digests'), { params: this.params(q) });
+    return this.http.get<DigestPage>(this.url('/admin/digests'), { params: this.params(q) });
   }
   digest(id: string) {
-    return this.http.get<Digest>(this.url(`/admin/digests/${id}`));
+    return this.http.get<DigestDetail>(this.url(`/admin/digests/${id}`));
   }
-  triggerDigest(body: unknown) {
-    return this.http.post(this.url('/admin/digests/trigger'), body);
+  triggerDigest(body: { userId: string; type: 'daily' | 'weekly' }) {
+    return this.http.post<AdminDigest>(this.url('/admin/digests/trigger'), body);
   }
   resendDigest(id: string) {
     return this.http.post(this.url(`/admin/digests/${id}/resend`), {});
   }
-  failedJobs(q: Record<string, unknown>) {
-    return this.http.get<Page<Record<string, unknown>>>(this.url('/admin/jobs/failed'), {
-      params: this.params(q),
-    });
+  queueSummary() {
+    return this.http.get<QueueSummary[]>(this.url('/admin/jobs/summary'));
+  }
+  jobs(q: Record<string, unknown>) {
+    return this.http.get<JobPage>(this.url('/admin/jobs'), { params: this.params(q) });
+  }
+  job(queue: string, id: string) {
+    return this.http.get<AdminJob>(
+      this.url(`/admin/jobs/${encodeURIComponent(queue)}/${encodeURIComponent(id)}`),
+    );
   }
   cancelJob(queue: string, id: string) {
     return this.http.delete(

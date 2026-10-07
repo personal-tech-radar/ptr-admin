@@ -1,0 +1,39 @@
+.job-detail {
+  display: grid;
+  gap: 18px;
+}
+.job-detail > a,
+.job-detail dd a {
+  color: var(--orange);
+}
+.job-detail .page-header {
+  margin: 0;
+}
+.job-detail section {
+  padding: 20px;
+}
+.job-detail dl {
+  display: grid;
+  gap: 12px;
+}
+.job-detail dl div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 12px;
+}
+.job-detail dt {
+  color: var(--muted);
+}
+.job-detail dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.job-detail > button {
+  justify-self: start;
+}
+@media (max-width: 700px) {
+  .job-detail dl div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+}
