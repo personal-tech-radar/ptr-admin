@@ -1,0 +1,87 @@
+<div class="page info-pages-page">
+  <header class="page-header">
+    <div><h1>Information pages</h1></div>
+    <a class="btn primary" routerLink="/info-pages/new">Add information page</a>
+  </header>
+
+  <form class="filters panel" (ngSubmit)="applyFilters()">
+    <label
+      >Status<select name="isActive" [(ngModel)]="filters['isActive']">
+        <option value="">All pages</option>
+        <option value="true">Published</option>
+        <option value="false">Draft</option>
+      </select></label
+    >
+    <button class="btn primary" type="submit">Apply filters</button>
+  </form>
+
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+
+  <section class="panel" aria-label="Information pages">
+    @if (loading()) {
+      <p class="loading" role="status">Loading information pages…</p>
+    } @else if (!items().length) {
+      <p class="empty">No information pages found.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Title</th>
+              <th>Updated</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track item.id) {
+              <tr
+                [appTableRowLink]="['/info-pages', item.id]"
+                [appTableRowQueryParams]="queryParams()"
+                [appTableRowLabel]="'Edit information page ' + item.title"
+              >
+                <td>
+                  <span
+                    class="badge"
+                    [class.analyzed]="item.isActive"
+                    [class.disabled]="!item.isActive"
+                  >
+                    {{ item.isActive ? 'Published' : 'Draft' }}
+                  </span>
+                </td>
+                <td>
+                  <a [routerLink]="['/info-pages', item.id]">{{ item.title }}</a>
+                </td>
+                <td>{{ item.updatedAt | date: 'medium' }}</td>
+                <td>{{ item.createdAt | date: 'medium' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <span>{{ total() }} pages · Page {{ page() }} of {{ totalPages() }}</span>
+        <div>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === 1"
+            (click)="changePage(page() - 1)"
+          >
+            Previous
+          </button>
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="page() === totalPages()"
+            (click)="changePage(page() + 1)"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</div>

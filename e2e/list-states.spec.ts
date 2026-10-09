@@ -69,6 +69,13 @@ const cases = [
     loading: 'Loading administrators…',
     empty: 'No administrators found.',
   },
+  {
+    name: 'Information pages',
+    route: '/info-pages',
+    endpoint: '/admin/info-pages',
+    loading: 'Loading information pages…',
+    empty: 'No information pages found.',
+  },
 ] as const;
 
 for (const scenario of cases) {

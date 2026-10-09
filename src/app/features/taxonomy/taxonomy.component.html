@@ -167,7 +167,11 @@
       </div>
     </div>
   }
-  <dialog #createDialog class="create-dialog" aria-labelledby="create-taxonomy-title">
+  <dialog
+    #createDialog
+    class="create-dialog modal-centered"
+    aria-labelledby="create-taxonomy-title"
+  >
     <h2 id="create-taxonomy-title">Add technology or interest</h2>
     @if (createError()) {
       <p class="error-box" role="alert">{{ createError() }}</p>

@@ -24,6 +24,13 @@ body {
   min-width: 320px;
   background: var(--bg);
 }
+dialog.modal-centered[open] {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  max-height: calc(100dvh - 32px);
+}
 button,
 input,
 select {
