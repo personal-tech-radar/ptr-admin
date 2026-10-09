@@ -1,0 +1,51 @@
+.info-pages-page {
+  display: grid;
+  gap: 18px;
+}
+
+.info-pages-page .page-header {
+  margin-bottom: 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  padding: 18px;
+}
+
+.filters label {
+  width: min(100%, 280px);
+  margin: 0;
+}
+
+.info-pages-page td a {
+  color: var(--text);
+  text-decoration-color: var(--orange);
+}
+
+.badge.disabled {
+  color: var(--muted);
+  background: var(--panel-2);
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.pagination > div {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 700px) {
+  .info-pages-page {
+    padding: 22px 16px 50px;
+  }
+}

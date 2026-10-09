@@ -20,6 +20,7 @@ export class AdminShellComponent {
     { path: 'articles', label: 'Articles', icon: '▤' },
     { path: 'digests', label: 'Digests', icon: '✉' },
     { path: 'jobs', label: 'Jobs', icon: '⚙' },
+    { path: 'info-pages', label: 'Info pages', icon: '▤' },
     { path: 'admins', label: 'Administrators', icon: '♟' },
   ];
   logout() {

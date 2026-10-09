@@ -1,0 +1,7 @@
+@if (!initialized() && !error()) {
+  <p class="muted" role="status">Loading content editor…</p>
+}
+<div #holder class="editor-holder" role="region" aria-label="Information page content editor"></div>
+@if (error()) {
+  <p class="error-box" role="alert">{{ error() }}</p>
+}

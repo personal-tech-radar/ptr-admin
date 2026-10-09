@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 const email = process.env['ADMIN_EMAIL'];
 const password = process.env['ADMIN_PASSWORD'];
@@ -10,6 +10,15 @@ async function signIn(page: Page) {
   await page.getByLabel('Password').fill(password);
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page).toHaveURL(/\/dashboard/);
+}
+
+async function expectDialogCentered(page: Page, dialog: Locator) {
+  const bounds = await dialog.boundingBox();
+  const viewport = page.viewportSize();
+  expect(bounds).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(Math.abs(bounds!.x + bounds!.width / 2 - viewport!.width / 2)).toBeLessThan(2);
+  expect(Math.abs(bounds!.y + bounds!.height / 2 - viewport!.height / 2)).toBeLessThan(2);
 }
 
 test('dashboard loads, preserves its period, and links to an exact source window', async ({
@@ -33,6 +42,7 @@ test('dashboard loads, preserves its period, and links to an exact source window
     'Articles',
     'Digests',
     'Jobs',
+    'Info pages',
     'Administrators',
   ]);
   await expect(page.getByRole('heading', { name: 'Backend status' })).toBeVisible();
@@ -119,6 +129,8 @@ test('sources and candidates preserve filters and open full details', async ({ p
   await expect(page.getByRole('columnheader', { name: 'Type / method' })).toBeVisible();
   await expect(page.getByRole('columnheader').first()).toHaveText('Status');
   await expect(page.getByRole('button', { name: 'Apply filters' })).toHaveClass(/primary/);
+  await expect(page.getByLabel('Status').first()).toHaveValue('active');
+  await expect(page.getByLabel('Period')).toHaveValue('7d');
   const sourceRow = page.locator('tbody tr').first();
   await sourceRow.locator('td').nth(1).click();
   await expect(page).toHaveURL(/\/sources\/[0-9a-f-]+/);
@@ -137,6 +149,7 @@ test('sources and candidates preserve filters and open full details', async ({ p
   await expect(page.getByRole('heading', { name: 'Lifecycle' })).toBeVisible();
 
   await page.goto('/sources?tab=candidates&status=pending');
+  await expect(page.getByLabel('Status').first()).toHaveValue('pending');
   await expect(page.getByText('No candidates found')).toBeVisible();
   await expect(page.getByRole('link', { name: /Candidates/ })).toBeVisible();
   expect(new URL(page.url()).searchParams.get('status')).toBe('pending');
@@ -203,6 +216,7 @@ test('articles preserve URL filters and expose full analysis without edit contro
     await expect(extractedContentDialog).toBeHidden();
     await extractedContentButton.click();
     await expect(extractedContentDialog).toBeVisible();
+    await expectDialogCentered(page, extractedContentDialog);
     await expect(extractedContentDialog.locator('.raw-content')).not.toContainText(/<[^>]+>/);
     await extractedContentDialog.getByRole('button', { name: 'Close' }).click();
     await expect(extractedContentDialog).toBeHidden();
@@ -237,6 +251,7 @@ test('taxonomy topics, streams, topic coverage, and confirmed source discovery',
   await signIn(page);
   await page.goto('/taxonomy?kind=technology');
   await expect(page.getByRole('heading', { name: 'Taxonomy' })).toBeVisible();
+  await expect(page.getByLabel('Kind').first()).toHaveValue('technology');
   await expect(page.getByText('Content model', { exact: true })).toHaveCount(0);
   await expect(
     page.getByText('Manage topics and streams; inspect actual source coverage.'),
@@ -245,6 +260,7 @@ test('taxonomy topics, streams, topic coverage, and confirmed source discovery',
   await page.getByRole('button', { name: 'Add technology or interest' }).click();
   const createDialog = page.getByRole('dialog', { name: 'Add technology or interest' });
   await expect(createDialog).toBeVisible();
+  await expectDialogCentered(page, createDialog);
   await expect(createDialog.getByLabel('Name')).toBeVisible();
   await expect(createDialog.getByLabel('Kind')).toBeVisible();
   await page.route('**/admin/technology-interests', async (route) => {
@@ -284,6 +300,7 @@ test('taxonomy topics, streams, topic coverage, and confirmed source discovery',
     await page.getByRole('button', { name: 'Discover sources' }).click();
     const discoverDialog = page.getByRole('dialog', { name: 'Confirm source discovery' });
     await expect(discoverDialog).toBeVisible();
+    await expectDialogCentered(page, discoverDialog);
     await expect(discoverDialog.getByRole('button', { name: 'Confirm and discover' })).toHaveClass(
       /primary/,
     );
@@ -458,6 +475,7 @@ test('users preserve filters and expose clickable rows, selections, and activity
   await expect(page.getByText('Inspect users, selections and retained activity.')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Analytics' })).toHaveCount(0);
   await expect(page.getByRole('combobox', { name: 'Verified' })).toHaveValue('true');
+  await expect(page.getByRole('combobox', { name: 'Activity period' })).toHaveValue('7d');
   await expect(page.getByRole('table').or(page.getByText('No users found.'))).toBeVisible();
   const userRow = page.locator('tbody tr:first-child');
   if (await userRow.count()) {
@@ -509,6 +527,9 @@ test('administrators retain list, creation form, and logout', async ({ page }) =
   await expect(page.getByLabel('Email')).toHaveCount(0);
   await expect(page.getByRole('table')).toBeVisible();
   await page.getByRole('button', { name: 'Add administrator' }).click();
+  const adminDialog = page.getByRole('dialog', { name: 'Add administrator' });
+  await expect(adminDialog).toBeVisible();
+  await expectDialogCentered(page, adminDialog);
   const createDialog = page.getByRole('dialog');
   await expect(createDialog).toBeVisible();
   await expect(createDialog.getByLabel('Email')).toBeVisible();
@@ -525,6 +546,130 @@ test('administrators retain list, creation form, and logout', async ({ page }) =
   await page.getByRole('button', { name: /Log out|Logout|Sign out/ }).click();
   await expect(page).toHaveURL(/\/login/);
   expect(browserErrors).toEqual([]);
+});
+
+test('info pages reflect URL filters and edit Editor.js JSON blocks', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('ptr-admin-token', 'e2e-admin-token'));
+  const id = '00000000-0000-4000-8000-000000000017';
+  const item = {
+    id,
+    title: 'Privacy policy',
+    isActive: false,
+    createdAt: '2026-10-01T12:00:00.000Z',
+    updatedAt: '2026-10-02T12:00:00.000Z',
+    fullText: {
+      time: 1790942400000,
+      version: '2.31.7',
+      blocks: [
+        { id: 'heading-one', type: 'header', data: { text: 'Your privacy', level: 2 } },
+        { id: 'paragraph-one', type: 'paragraph', data: { text: 'Existing privacy text.' } },
+      ],
+    },
+  };
+  await page.route(
+    (url) => url.pathname === '/admin/info-pages' && url.searchParams.get('isActive') === 'false',
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          data: [
+            {
+              id,
+              title: item.title,
+              isActive: item.isActive,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+            },
+          ],
+          meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+        }),
+      }),
+  );
+  let saved: { fullText?: { blocks?: { type: string; data: { text: string } }[] } } | undefined;
+  await page.route(
+    (url) => url.pathname === `/admin/info-pages/${id}`,
+    async (route) => {
+      if (route.request().method() === 'PATCH') {
+        saved = route.request().postDataJSON() as {
+          fullText?: { blocks?: { type: string; data: { text: string } }[] };
+        };
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ...item, ...saved }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(item),
+      });
+    },
+  );
+
+  await page.goto('/info-pages?isActive=false');
+  await expect(page.getByLabel('Status')).toHaveValue('false');
+  const row = page.locator('tbody tr').first();
+  await row.locator('td').nth(2).click();
+  await expect(page).toHaveURL(new RegExp(`/info-pages/${id}\\?isActive=false`));
+  await expect(page.getByLabel('Page title')).toHaveValue('Privacy policy');
+  await expect(page.locator('.codex-editor')).toBeVisible();
+  const paragraph = page.locator('[contenteditable="true"]').last();
+  await paragraph.fill('Updated privacy text.');
+  await page.getByRole('button', { name: 'Save page' }).click();
+  await expect(page).toHaveURL(/\/info-pages\?isActive=false/);
+  expect(saved?.fullText?.blocks?.some((block) => block.type === 'header')).toBe(true);
+  expect(
+    saved?.fullText?.blocks?.some((block) => block.data.text.includes('Updated privacy text.')),
+  ).toBe(true);
+  await expect(page.getByRole('status')).toContainText('Information page updated.');
+});
+
+test('admin create dialogs are centered on desktop and mobile', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('ptr-admin-token', 'e2e-admin-token'));
+  await page.route(
+    (url) =>
+      ['/admin/sources', '/admin/technology-interests'].includes(url.pathname) ||
+      url.pathname === '/admin/content-streams' ||
+      url.pathname === '/admin/admins',
+    (route) => {
+      const isAdmins = route.request().url().includes('/admin/admins');
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(
+          isAdmins
+            ? { items: [], total: 0, page: 1, limit: 20 }
+            : { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } },
+        ),
+      });
+    },
+  );
+  await page.route('**/admin/content-streams**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+  );
+
+  await page.goto('/taxonomy');
+  await page.getByRole('button', { name: 'Add technology or interest' }).click();
+  const taxonomyDialog = page.getByRole('dialog', { name: 'Add technology or interest' });
+  await expect(taxonomyDialog).toBeVisible();
+  await expectDialogCentered(page, taxonomyDialog);
+  await taxonomyDialog.getByRole('button', { name: 'Cancel' }).click();
+
+  await page.goto('/sources');
+  await page.getByRole('button', { name: 'Add source' }).click();
+  const sourceDialog = page.getByRole('dialog', { name: 'Add source' });
+  await expect(sourceDialog).toBeVisible();
+  await expectDialogCentered(page, sourceDialog);
+  await sourceDialog.getByRole('button', { name: 'Cancel' }).click();
+
+  await page.goto('/admins');
+  await page.getByRole('button', { name: 'Add administrator' }).click();
+  const administratorDialog = page.getByRole('dialog', { name: 'Add administrator' });
+  await expect(administratorDialog).toBeVisible();
+  await expectDialogCentered(page, administratorDialog);
 });
 
 test('source creation preserves fields and server error after a rejected submission', async ({
@@ -544,6 +689,7 @@ test('source creation preserves fields and server error after a rejected submiss
   await expect(page.getByRole('button', { name: 'Apply filters' })).toHaveClass(/primary/);
   await page.getByRole('button', { name: 'Add source' }).click();
   const dialog = page.getByRole('dialog', { name: 'Add source' });
+  await expectDialogCentered(page, dialog);
   const bounds = await dialog.boundingBox();
   const viewport = page.viewportSize();
   expect(bounds).not.toBeNull();

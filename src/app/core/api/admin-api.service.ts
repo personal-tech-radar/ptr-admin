@@ -8,6 +8,12 @@ import { AdminJob, JobPage, QueueSummary } from './admin-job.models';
 import { AdminDigest, DigestDetail, DigestPage } from './admin-digest.models';
 import { AdminUser, SourcePreference, UserEvent, UserPage } from './admin-user.models';
 import {
+  AdminInfoPage,
+  CreateInfoPage,
+  InfoPagePage,
+  UpdateInfoPage,
+} from './admin-info-page.models';
+import {
   AdminSource,
   CreateSource,
   SourceCandidate,
@@ -198,5 +204,25 @@ export class AdminApiService {
   }
   changePassword(body: unknown) {
     return this.http.patch(this.url('/admin/auth/password'), body);
+  }
+  infoPages(q: Record<string, unknown>) {
+    return this.http.get<InfoPagePage>(this.url('/admin/info-pages'), {
+      params: this.params(q),
+    });
+  }
+  infoPage(id: string) {
+    return this.http.get<AdminInfoPage>(this.url(`/admin/info-pages/${encodeURIComponent(id)}`));
+  }
+  createInfoPage(body: CreateInfoPage) {
+    return this.http.post<AdminInfoPage>(this.url('/admin/info-pages'), body);
+  }
+  updateInfoPage(id: string, body: UpdateInfoPage) {
+    return this.http.patch<AdminInfoPage>(
+      this.url(`/admin/info-pages/${encodeURIComponent(id)}`),
+      body,
+    );
+  }
+  deleteInfoPage(id: string) {
+    return this.http.delete<void>(this.url(`/admin/info-pages/${encodeURIComponent(id)}`));
   }
 }

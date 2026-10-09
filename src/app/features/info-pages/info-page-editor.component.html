@@ -1,0 +1,67 @@
+<section class="page info-page-editor">
+  <a class="text-link" routerLink="/info-pages" [queryParams]="backQueryParams"
+    >← Information pages</a
+  >
+  @if (loading()) {
+    <p class="loading" role="status">Loading information page…</p>
+  }
+  @if (error()) {
+    <p class="error-box" role="alert">{{ error() }}</p>
+  }
+
+  @if (!loading() && !error()) {
+    <header class="page-header">
+      <div>
+        @if (item(); as current) {
+          <span
+            class="badge"
+            [class.analyzed]="current.isActive"
+            [class.disabled]="!current.isActive"
+          >
+            {{ current.isActive ? 'Published' : 'Draft' }}
+          </span>
+        }
+        <h1>{{ heading() }}</h1>
+        @if (item(); as current) {
+          <p class="muted">
+            Created {{ current.createdAt | date: 'medium' }} · Updated
+            {{ current.updatedAt | date: 'medium' }}
+          </p>
+        }
+      </div>
+      @if (item(); as current) {
+        <div class="page-actions">
+          <button
+            class="btn outline"
+            type="button"
+            [disabled]="actionPending()"
+            (click)="setPublished(!current.isActive)"
+          >
+            {{ current.isActive ? 'Unpublish' : 'Publish' }}
+          </button>
+          <button class="btn danger" type="button" [disabled]="actionPending()" (click)="remove()">
+            Delete
+          </button>
+        </div>
+      }
+    </header>
+
+    <form class="panel editor-form" (ngSubmit)="save()">
+      <label
+        >Page title
+        <input name="title" required maxlength="255" [(ngModel)]="title" autocomplete="off" />
+      </label>
+      <app-editor-js-editor [data]="editorData" (ready)="markEditorReady()" />
+      <label class="published-control">
+        <input name="isActive" type="checkbox" [(ngModel)]="isActive" />
+        Published
+      </label>
+      <div class="form-actions">
+        <a class="btn outline" routerLink="/info-pages" [queryParams]="backQueryParams">Cancel</a>
+        <button class="btn primary" type="submit" [disabled]="saving() || !editorReady()">
+          {{ saving() ? 'Saving…' : 'Save page' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

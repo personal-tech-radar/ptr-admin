@@ -110,6 +110,28 @@ export const routes: Routes = [
           import('./features/sources/sources.component').then((m) => m.SourcesComponent),
       },
       {
+        path: 'info-pages/new',
+        title: 'New information page',
+        loadComponent: () =>
+          import('./features/info-pages/info-page-editor.component').then(
+            (m) => m.InfoPageEditorComponent,
+          ),
+      },
+      {
+        path: 'info-pages/:id',
+        title: 'Edit information page',
+        loadComponent: () =>
+          import('./features/info-pages/info-page-editor.component').then(
+            (m) => m.InfoPageEditorComponent,
+          ),
+      },
+      {
+        path: 'info-pages',
+        title: 'Information pages',
+        loadComponent: () =>
+          import('./features/info-pages/info-pages.component').then((m) => m.InfoPagesComponent),
+      },
+      {
         path: 'admins',
         title: 'Administrators',
         loadComponent: () =>

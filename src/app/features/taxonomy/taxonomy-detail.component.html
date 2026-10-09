@@ -115,7 +115,7 @@
       </button>
     </form>
   }
-  <dialog #discoverDialog class="discover-dialog" aria-labelledby="discover-title">
+  <dialog #discoverDialog class="discover-dialog modal-centered" aria-labelledby="discover-title">
     <h2 id="discover-title">Confirm source discovery</h2>
     @if (item(); as topic) {
       <p>Queue source discovery for {{ topic.name }}?</p>

@@ -58,9 +58,14 @@
       </div>
     }
   </section>
-  <dialog #createDialog class="create-dialog" (close)="createError.set('')">
+  <dialog
+    #createDialog
+    class="create-dialog modal-centered"
+    aria-labelledby="add-administrator-title"
+    (close)="createError.set('')"
+  >
     <form (ngSubmit)="create()">
-      <h2>Add administrator</h2>
+      <h2 id="add-administrator-title">Add administrator</h2>
       <p class="muted">Create a new administrator account.</p>
       <label>Email<input name="email" type="email" required [(ngModel)]="form.email" /></label
       ><label
